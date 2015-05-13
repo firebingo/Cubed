@@ -14,7 +14,6 @@ public class CameraMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Debug.DrawRay(transform.position, new Vector3(transform.forward.normalized.x, 0, transform.forward.normalized.z));
         if (Input.GetAxis("CameraHorizontal") > 0)
         {
             transform.RotateAround(target.transform.position, Vector3.up, 85 * Input.GetAxis("CameraHorizontal") * Time.deltaTime);
