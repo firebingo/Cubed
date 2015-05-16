@@ -9,7 +9,8 @@ public class Player : MonoBehaviour
     float maxSpeed;
     float jumpForce;
     int jumpCount;
-    int maxJumps;
+    public int maxJumps;
+    bool canIceSheild;
 
     // Use this for initialization
     void Start()
@@ -19,17 +20,35 @@ public class Player : MonoBehaviour
         maxSpeed = 3.0f;
         jumpForce = 4.0f;
         jumpCount = 1;
-        maxJumps = 1;
         gCamera = Camera.main;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetButtonDown("Jump") && jumpCount > 0)
+        if (Input.GetButtonDown("A") && jumpCount > 0)
         {
             playerPhysics.AddForce(new Vector3(0, 1, 0) * jumpForce * Time.fixedDeltaTime, ForceMode.Impulse);
             jumpCount--;
+        }
+        if (Input.GetButton("X"))
+        {
+            if (Input.GetButtonDown("X") && jumpCount > 0)
+                playerPhysics.AddForce(new Vector3(0, 1, 0) * jumpForce/2.5f * Time.fixedDeltaTime, ForceMode.Impulse);
+
+            if(!transform.FindChild("IceBall").gameObject.activeSelf)
+            {
+                transform.FindChild("IceBall").gameObject.SetActive(true);
+                GetComponent<BoxCollider>().enabled = false;
+            }
+        }
+        else
+        {
+            if (transform.FindChild("IceBall").gameObject.activeSelf)
+            {
+                transform.FindChild("IceBall").gameObject.SetActive(false);
+                GetComponent<BoxCollider>().enabled = true;
+            }
         }
     }
 
