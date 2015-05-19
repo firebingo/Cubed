@@ -8,9 +8,11 @@ public class Player : MonoBehaviour
     float moveSpeed;
     float maxSpeed;
     float jumpForce;
-    int jumpCount;
+    public int jumpCount;
     public int maxJumps;
+    float jumpTimer;
     bool canIceSheild;
+    float collisionTimer;
 
     // Use this for initialization
     void Start()
@@ -19,34 +21,57 @@ public class Player : MonoBehaviour
         moveSpeed = 11.0f;
         maxSpeed = 3.0f;
         jumpForce = 4.0f;
-        jumpCount = 1;
+        jumpCount = maxJumps;
         gCamera = Camera.main;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetButtonDown("A") && jumpCount > 0)
+        jumpTimer += Time.deltaTime;
+        if (Input.GetButtonDown("A") && jumpCount > 0 && jumpTimer > 0.2f)
         {
             playerPhysics.AddForce(new Vector3(0, 1, 0) * jumpForce * Time.fixedDeltaTime, ForceMode.Impulse);
             jumpCount--;
+            jumpTimer = 0;
         }
-        if (Input.GetButton("X"))
-        {
-            if (Input.GetButtonDown("X") && jumpCount > 0)
-                playerPhysics.AddForce(new Vector3(0, 1, 0) * jumpForce/2.5f * Time.fixedDeltaTime, ForceMode.Impulse);
 
-            if(!transform.FindChild("IceBall").gameObject.activeSelf)
+        if (Input.GetButton("X") && !Input.GetButton("B"))
+        {
+            //if (Input.GetButtonDown("X") && jumpCount > 0)
+            //    playerPhysics.AddForce(new Vector3(0, 1, 0) * jumpForce / 4 * Time.fixedDeltaTime, ForceMode.Impulse);
+
+            if (!transform.GetChild(0).gameObject.activeSelf)
             {
-                transform.FindChild("IceBall").gameObject.SetActive(true);
+                transform.GetChild(0).gameObject.SetActive(true);
                 GetComponent<BoxCollider>().enabled = false;
             }
         }
         else
         {
-            if (transform.FindChild("IceBall").gameObject.activeSelf)
+            if (transform.GetChild(0).gameObject.activeSelf)
             {
-                transform.FindChild("IceBall").gameObject.SetActive(false);
+                transform.GetChild(0).gameObject.SetActive(false);
+                GetComponent<BoxCollider>().enabled = true;
+            }
+        }
+
+        if (Input.GetButton("B") && !Input.GetButton("X"))
+        {
+            //if (Input.GetButtonDown("B") && jumpCount > 0)
+            //    playerPhysics.AddForce(new Vector3(0, 1, 0) * jumpForce / 4 * Time.fixedDeltaTime, ForceMode.Impulse);
+
+            if (!transform.GetChild(1).gameObject.activeSelf)
+            {
+                transform.GetChild(1).gameObject.SetActive(true);
+                GetComponent<BoxCollider>().enabled = false;
+            }
+        }
+        else
+        {
+            if (transform.GetChild(1).gameObject.activeSelf)
+            {
+                transform.GetChild(1).gameObject.SetActive(false);
                 GetComponent<BoxCollider>().enabled = true;
             }
         }
@@ -54,7 +79,7 @@ public class Player : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (!Physics.Raycast(transform.position, playerPhysics.velocity, 0.25f , 1 << 8))
+        if (!Physics.Raycast(transform.position, playerPhysics.velocity, 0.25f, 1 << 8))
         {
             if (Input.GetAxis("Vertical") > 0 && playerPhysics.velocity.magnitude < maxSpeed)
             {
@@ -78,11 +103,15 @@ public class Player : MonoBehaviour
 
     void OnCollisionStay(Collision other)
     {
-        Ray ray = new Ray(transform.position, -(Vector3.up));
-        if (Physics.Raycast(ray, 0.2f, 1 << 8))
+        collisionTimer += Time.deltaTime;
+        if (collisionTimer > 0.08f)
         {
-            jumpCount = maxJumps;
+            collisionTimer = 0;
+            Ray ray = new Ray(transform.position, -(Vector3.up));
+            if (Physics.Raycast(ray, 0.2f, 1 << 8))
+            {
+                jumpCount = maxJumps;
+            }
         }
     }
-
 }
