@@ -3,17 +3,12 @@ using System.Collections;
 
 public class CameraTracker : MonoBehaviour
 {
-    public GameObject cameraFollow;
+    public GameObject cameraFollow; //refernce to the gameobject the script should follow, set in editor.
 
-    // Use this for initialization
-    void Start()
-    {
-
-    }
-
-    // Update is called once per frame
+    //Unity Update() method
     void Update()
     {
-        transform.position = cameraFollow.transform.position;
+        //set the object's position 
+        transform.position = cameraFollow.transform.position; //set this object's position to the position of the follow object.
     }
 }

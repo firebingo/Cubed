@@ -1,42 +1,59 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+/*
+ * IMPORTANT NOTE:
+ * This file should be used as an example of the coding standards of this project laid out
+ *  in the TDD.
+ */
+
 public class Player : MonoBehaviour
 {
-    public Camera gCamera;
-    Rigidbody playerPhysics;
-    float moveSpeed;
-    float maxSpeed;
-    float jumpForce;
-    public int jumpCount;
-    public int maxJumps;
-    float jumpTimer;
-    bool canIceSheild;
-    float collisionTimer;
+    public GameController gameMaster; //reference to the gameController.
+    public Camera gCamera; //reference to the game's main camera
+    Rigidbody playerPhysics; //reference to the players rigidbody
+    float moveSpeed; //the amount of force applied to 
+    float maxSpeed; //the max velocity of the player.
+    float jumpForce; //the amount of impluse applied to make a player jump.
+    public int jumpCount; //the amount of jumps the player can currently do.
+    public int maxJumps; //the max amount of jumps the player can do.
+    float jumpTimer; //timer used for preventing multi-jumping too quickly.
+    bool canIceShield; //whether or not the player can use the ice shield.
+    bool canFireShield; //whether or not the player can use the fire shield.
+    public float collisionTimer; //timer for checking collision to reset the jumps.
 
-    // Use this for initialization
+    //Unity Start() method
     void Start()
     {
+        gameMaster = GameController.gameMaster;
         playerPhysics = GetComponent<Rigidbody>();
         moveSpeed = 11.0f;
         maxSpeed = 3.0f;
         jumpForce = 4.0f;
         jumpCount = maxJumps;
+        canFireShield = true;
+        canIceShield = true;
         gCamera = Camera.main;
     }
 
-    // Update is called once per frame
+    //Unity Update() method
     void Update()
     {
         jumpTimer += Time.deltaTime;
+        //if the Jump button is pressed, the player has aviliable jumps, and isin't multi-jumping too quickly,
+        // have the player jump, decrement the jump count, and reset the timers.
         if (Input.GetButtonDown("A") && jumpCount > 0 && jumpTimer > 0.2f)
         {
             playerPhysics.AddForce(new Vector3(0, 1, 0) * jumpForce * Time.fixedDeltaTime, ForceMode.Impulse);
             jumpCount--;
             jumpTimer = 0;
+            collisionTimer = 0;
         }
 
-        if (Input.GetButton("X") && !Input.GetButton("B"))
+        //if the Ice Shield button is hit, the Fire Shield Button isin't and the player can use the Ice Shield,
+        // set the Ice Shield to be active and disable the cube's hit box.
+        //Otherwise, disable the Ice Shield and enable the cube's collider.
+        if (Input.GetButton("X") && !Input.GetButton("B") && canIceShield)
         {
             //if (Input.GetButtonDown("X") && jumpCount > 0)
             //    playerPhysics.AddForce(new Vector3(0, 1, 0) * jumpForce / 4 * Time.fixedDeltaTime, ForceMode.Impulse);
@@ -56,7 +73,10 @@ public class Player : MonoBehaviour
             }
         }
 
-        if (Input.GetButton("B") && !Input.GetButton("X"))
+        //if the Fire Shield button is hit, the Fire Shield Button isin't and the player can use the Fire Shield,
+        // set the Fire Shield to be active and disable the cube's hit box.
+        //Otherwise, disable the Fire Shield and enable the cube's collider.
+        if (Input.GetButton("B") && !Input.GetButton("X") && canFireShield)
         {
             //if (Input.GetButtonDown("B") && jumpCount > 0)
             //    playerPhysics.AddForce(new Vector3(0, 1, 0) * jumpForce / 4 * Time.fixedDeltaTime, ForceMode.Impulse);
@@ -77,10 +97,13 @@ public class Player : MonoBehaviour
         }
     }
 
+    //Unity FixedUpdate() method.
     void FixedUpdate()
     {
+        //if the player isin't too close to a environment object.
         if (!Physics.Raycast(transform.position, playerPhysics.velocity, 0.25f, 1 << 8))
         {
+            //Forward and reverse movement controls.
             if (Input.GetAxis("Vertical") > 0 && playerPhysics.velocity.magnitude < maxSpeed)
             {
                 playerPhysics.AddForceAtPosition(new Vector3(gCamera.transform.forward.x, 0, gCamera.transform.forward.z).normalized * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Vertical"), new Vector3(transform.position.x, transform.position.y + (0.35f * transform.localScale.y), transform.position.z - (0.5f * transform.localScale.z)), ForceMode.Force);
@@ -90,6 +113,7 @@ public class Player : MonoBehaviour
                 playerPhysics.AddForceAtPosition(new Vector3(gCamera.transform.forward.x, 0, gCamera.transform.forward.z).normalized * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Vertical"), new Vector3(transform.position.x, transform.position.y + (0.35f * transform.localScale.y), transform.position.z + (0.5f * transform.localScale.z)), ForceMode.Force);
             }
 
+            //Sideways movement controls.
             if (Input.GetAxis("Horizontal") > 0 && playerPhysics.velocity.magnitude < maxSpeed)
             {
                 playerPhysics.AddForceAtPosition(gCamera.transform.right * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Horizontal"), new Vector3(transform.position.x - (0.5f * transform.localScale.x), transform.position.y + (0.35f * transform.localScale.y), transform.position.z), ForceMode.Force);
@@ -101,12 +125,18 @@ public class Player : MonoBehaviour
         }
     }
 
-    void OnCollisionStay(Collision other)
+    //Unity OnCollisionStay() Method
+    void OnCollisionStay(Collision iOther)
     {
-        collisionTimer += Time.deltaTime;
-        if (collisionTimer > 0.08f)
+        //timer doesn't need to count higher than this.
+        if(collisionTimer < 1.0f)
+            collisionTimer += Time.deltaTime;
+
+        //if the collision timer is over its threshold, raycast to see if the player is on a environment object to reset the jump count.
+        //This is to prevent the jump count from resetting when the player hits jump but is still close to the ground.
+        //Frame perfect jumping may still possibly reset the jump count allowing for a extra jump. Not practical to test.
+        if (collisionTimer > 0.1f)
         {
-            collisionTimer = 0;
             Ray ray = new Ray(transform.position, -(Vector3.up));
             if (Physics.Raycast(ray, 0.2f, 1 << 8))
             {
