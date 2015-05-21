@@ -67,6 +67,9 @@ public class GameController : MonoBehaviour
         //if refresh quality settings is true, refresh quality settings.
         if(refreshQuality)
             setQuality();
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+            Application.Quit();
     }
 
     //set the quality settings important for this object
