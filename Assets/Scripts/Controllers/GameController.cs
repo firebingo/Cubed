@@ -14,8 +14,8 @@ public class GameController : MonoBehaviour
     public bool playerCanUseFireShield;
 
     //Options
-    public int SMAAQulity; //0 = low, 1 = medium, 2 = high, 3 = Ultra 
-    public int SSAOQuality; //0 = low, 1 = medium, 2 = high
+    public int SMAAQuality; //0 = off, 1 = low, 2 = medium, 3 = high, 4 = ultra 
+    public int SSAOQuality; //0 = off, 1 = low, 2 = medium, 3 = high
     public int postProcessingQuality; //0 = no bloom or sun shafts, 1 = bloom, 2 = sun shafts
     public int reflectionQuality; //the resolution of cubemaps. 0 = 128, 1 = 256, 2 = 512, 3 = 1024
     public int reflectionUpdateFrequency; //frequnecy of cubemap updates, 0 = on awake, 1 = 0.8s, 2 = 0.5s, 3 = 0.25s, 4 = 0.1s, 5 = 0.05s
@@ -36,8 +36,7 @@ public class GameController : MonoBehaviour
         else if(gameMaster != this)
         {
             Destroy(this.gameObject);
-        }
-        
+        } 
     }
 
     // Unity Start() method
@@ -47,7 +46,7 @@ public class GameController : MonoBehaviour
             refreshQuality = true;
         else
         {
-            SMAAQulity = 2;
+            SMAAQuality = 2;
             SSAOQuality = 2;
             postProcessingQuality = 2;
             reflectionQuality = 2;
@@ -69,11 +68,16 @@ public class GameController : MonoBehaviour
             setQuality();
 
         if (Input.GetKeyDown(KeyCode.Escape))
-            Application.Quit();
+            loadScene(0);
+    }
+
+    public void loadScene(int iIndex)
+    {
+        Application.LoadLevelAsync(iIndex);
     }
 
     //set the quality settings important for this object
-    public void setQuality()
+    private void setQuality()
     {
         // **  Set the quality settings  ** //
         //Shadows, 0 = hard shadows, low res, 2 cascades, 1 = hard and soft, medium, two cascades, 2 = high, four cascades, 3 = very high
@@ -87,10 +91,10 @@ public class GameController : MonoBehaviour
             QualitySettings.SetQualityLevel(3);
 
         //vsync
-        if (!vSync)
-            QualitySettings.vSyncCount = 0;
-        else
+        if (vSync)
             QualitySettings.vSyncCount = 1;
+        else
+            QualitySettings.vSyncCount = 0;
 
         //fullscreen
         if (Fullscreen)
@@ -99,23 +103,30 @@ public class GameController : MonoBehaviour
             Screen.fullScreen = false;
 
         StartCoroutine("waitForQualityRefresh");
+    }
+
+    //applies quality settings.
+    public void applyQuality()
+    {
+        saveOptions();
         refreshQuality = true;
+        setQuality();
     }
 
     //saves the game options to a file.
-    public void saveOptions()
+    private void saveOptions()
     {
         BinaryFormatter bf = new BinaryFormatter();
         FileStream file = File.Open(Application.dataPath + "/gameOptions.wort", FileMode.OpenOrCreate);
 
-        GameOptions options = new GameOptions(SMAAQulity, SSAOQuality, postProcessingQuality, reflectionQuality, reflectionUpdateFrequency, shadowQuality, vSync, Fullscreen);
+        GameOptions options = new GameOptions(SMAAQuality, SSAOQuality, postProcessingQuality, reflectionQuality, reflectionUpdateFrequency, shadowQuality, vSync, Fullscreen);
 
         bf.Serialize(file, options);
         file.Close();
     }
 
     //loads the game options from a file if it exists.
-    public bool loadOptions()
+    private bool loadOptions()
     {
         if (File.Exists(Application.dataPath + "/gameOptions.wort"))
         {
@@ -124,7 +135,7 @@ public class GameController : MonoBehaviour
             GameOptions options = bf.Deserialize(file) as GameOptions;
             file.Close();
 
-            SMAAQulity = options.SMAAQulity;
+            SMAAQuality = options.SMAAQuality;
             SSAOQuality = options.SSAOQuality;
             postProcessingQuality = options.postProcessingQuality;
             reflectionQuality = options.reflectionQuality;
@@ -152,7 +163,7 @@ class GameOptions
 {
     public GameOptions(int iSMAAQuality, int iSSAOQuality, int iPostProcessingQuality, int iReflectionQuality, int iReflectionUpdateFrequency, int iShadowQuality, bool iVsync, bool iFullScreen)
     {
-        SMAAQulity = iSMAAQuality;
+        SMAAQuality = iSMAAQuality;
         SSAOQuality = iSSAOQuality;
         postProcessingQuality = iPostProcessingQuality;
         reflectionQuality = iReflectionQuality;
@@ -163,8 +174,8 @@ class GameOptions
     }
 
     //Options
-    public int SMAAQulity; //0 = low, 1 = medium, 2 = high, 3 = Ultra 
-    public int SSAOQuality; //0 = low, 1 = medium, 2 = high
+    public int SMAAQuality; //0 = off, 1 = low, 2 = medium, 3 = high, 4 = ultra
+    public int SSAOQuality; //0 = off, 1 = low, 2 = medium, 3 = high
     public int postProcessingQuality; //0 = no bloom or sun shafts, 1 = bloom, 2 = sun shafts
     public int reflectionQuality; //the resolution of cubemaps. 0 = 128, 1 = 256, 2 = 512, 3 = 1024
     public int reflectionUpdateFrequency; //frequnecy of cubemap updates, 0 = on awake, 1 = 0.8s, 2 = 0.5s, 3 = 0.25s, 4 = 0.1s, 5 = 0.05s

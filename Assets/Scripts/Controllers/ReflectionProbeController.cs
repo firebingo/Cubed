@@ -14,6 +14,7 @@ public class ReflectionProbeController : MonoBehaviour
     {
         rProbe = GetComponent<ReflectionProbe>();
         gameMaster = GameController.gameMaster;
+        setQuality();
     }
 
     //Unity Update() method
