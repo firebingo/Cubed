@@ -31,8 +31,6 @@ public class Player : MonoBehaviour
         maxSpeed = 3.0f;
         jumpForce = 4.0f;
         jumpCount = maxJumps;
-        canFireShield = true;
-        canIceShield = true;
         gCamera = Camera.main;
     }
 
@@ -95,6 +93,17 @@ public class Player : MonoBehaviour
                 GetComponent<BoxCollider>().enabled = true;
             }
         }
+
+        //check if the sheild use is allowed according to the global settings.
+        if (GameController.gameMaster.playerCanUseIceShield)
+            canIceShield = true;
+        else if (canIceShield)
+            canIceShield = false;
+
+        if (GameController.gameMaster.playerCanUseFireShield)
+            canFireShield = true;
+        else if(canFireShield)
+            canFireShield = false;
     }
 
     //Unity FixedUpdate() method.
