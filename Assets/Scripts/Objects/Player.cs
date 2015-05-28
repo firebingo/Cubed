@@ -21,11 +21,27 @@ public class Player : MonoBehaviour
     bool canIceShield; //whether or not the player can use the ice shield.
     bool canFireShield; //whether or not the player can use the fire shield.
     public float collisionTimer; //timer for checking collision to reset the jumps.
+    public float iceShieldTime; //how much time is left for the ice shield in seconds.
+    float maxIceShieldTime; //the max time the ice shield can be used.
+    public float fireShieldTime; //how much time is left for the fire shield in seconds.
+    float maxFireShieldTime; //the max time the fire shield can be used.
+    public float health; //the current health of the player.
+    float maxHealth; //the player's max health.
 
     //Unity Start() method
     void Start()
     {
         gameMaster = GameController.gameMaster;
+
+        gameMaster.gamePlayer = this;
+        maxJumps = gameMaster.playerMaxJumpCount;
+        maxIceShieldTime = gameMaster.playerMaxIceShieldTime;
+        maxFireShieldTime = gameMaster.playerMaxFireShieldTime;
+        maxHealth = gameMaster.playerMaxHealth;
+        health = maxHealth;
+        iceShieldTime = maxIceShieldTime;
+        fireShieldTime = maxFireShieldTime;
+
         playerPhysics = GetComponent<Rigidbody>();
         moveSpeed = 11.0f;
         maxSpeed = 3.0f;
@@ -51,11 +67,11 @@ public class Player : MonoBehaviour
         //if the Ice Shield button is hit, the Fire Shield Button isin't and the player can use the Ice Shield,
         // set the Ice Shield to be active and disable the cube's hit box.
         //Otherwise, disable the Ice Shield and enable the cube's collider.
-        if (Input.GetButton("X") && !Input.GetButton("B") && canIceShield)
+        if (Input.GetButton("X") && !Input.GetButton("B") && canIceShield && iceShieldTime > 0)
         {
             //if (Input.GetButtonDown("X") && jumpCount > 0)
             //    playerPhysics.AddForce(new Vector3(0, 1, 0) * jumpForce / 4 * Time.fixedDeltaTime, ForceMode.Impulse);
-
+            iceShieldTime -= Time.deltaTime;
             if (!transform.GetChild(0).gameObject.activeSelf)
             {
                 transform.GetChild(0).gameObject.SetActive(true);
@@ -74,11 +90,11 @@ public class Player : MonoBehaviour
         //if the Fire Shield button is hit, the Fire Shield Button isin't and the player can use the Fire Shield,
         // set the Fire Shield to be active and disable the cube's hit box.
         //Otherwise, disable the Fire Shield and enable the cube's collider.
-        if (Input.GetButton("B") && !Input.GetButton("X") && canFireShield)
+        if (Input.GetButton("B") && !Input.GetButton("X") && canFireShield && fireShieldTime > 0)
         {
             //if (Input.GetButtonDown("B") && jumpCount > 0)
             //    playerPhysics.AddForce(new Vector3(0, 1, 0) * jumpForce / 4 * Time.fixedDeltaTime, ForceMode.Impulse);
-
+            fireShieldTime -= Time.deltaTime;
             if (!transform.GetChild(1).gameObject.activeSelf)
             {
                 transform.GetChild(1).gameObject.SetActive(true);

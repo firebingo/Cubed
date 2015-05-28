@@ -9,9 +9,13 @@ public class GameController : MonoBehaviour
     public static GameController gameMaster;
 
     //Player Variables
+    public Player gamePlayer;
     public int playerMaxJumpCount;
     public bool playerCanUseIceShield;
     public bool playerCanUseFireShield;
+    public float playerMaxHealth;
+    public float playerMaxIceShieldTime;
+    public float playerMaxFireShieldTime;
 
     //Options
     public int SMAAQuality; //0 = off, 1 = low, 2 = medium, 3 = high, 4 = ultra 
@@ -36,7 +40,12 @@ public class GameController : MonoBehaviour
         else if(gameMaster != this)
         {
             Destroy(this.gameObject);
-        } 
+        }
+
+        playerMaxJumpCount = 1;
+        playerMaxFireShieldTime = 20;
+        playerMaxIceShieldTime = 20;
+        playerMaxHealth = 100;
     }
 
     // Unity Start() method
