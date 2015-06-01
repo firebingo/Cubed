@@ -20,6 +20,10 @@ public class Player : MonoBehaviour
     float jumpTimer; //timer used for preventing multi-jumping too quickly.
     bool canIceShield; //whether or not the player can use the ice shield.
     bool canFireShield; //whether or not the player can use the fire shield.
+    bool canDash; //whether or not the player can dash
+    public bool canDashTimer; //whether the timer allows the player to dash
+    bool canAirDash; //whether or not the player can dash in the air
+    float dashTimer; //timer to reset the dash
     public float collisionTimer; //timer for checking collision to reset the jumps.
     public float iceShieldTime; //how much time is left for the ice shield in seconds.
     float maxIceShieldTime; //the max time the ice shield can be used.
@@ -41,6 +45,8 @@ public class Player : MonoBehaviour
         health = maxHealth;
         iceShieldTime = maxIceShieldTime;
         fireShieldTime = maxFireShieldTime;
+        canAirDash = gameMaster.playerCanAirDash;
+        canDash = gameMaster.playerCanDash;
 
         playerPhysics = GetComponent<Rigidbody>();
         moveSpeed = 11.0f;
@@ -54,6 +60,7 @@ public class Player : MonoBehaviour
     void Update()
     {
         jumpTimer += Time.deltaTime;
+        dashTimer += Time.deltaTime;
         //if the Jump button is pressed, the player has aviliable jumps, and isin't multi-jumping too quickly,
         // have the player jump, decrement the jump count, and reset the timers.
         if (Input.GetButtonDown("A") && jumpCount > 0 && jumpTimer > 0.2f)
@@ -62,6 +69,56 @@ public class Player : MonoBehaviour
             jumpCount--;
             jumpTimer = 0;
             collisionTimer = 0;
+        }
+
+        //if the dash timer is over the cooldown time, reset it and allow to dash
+        if (dashTimer > 1.5f)
+        {
+            dashTimer = 0;
+            canDashTimer = true;
+        }
+        //if the dash button is pressed and the player can currently dash, make the player dash.
+        if (Input.GetButtonDown("Y") && canDash && canDashTimer)
+        {
+            ParticleSystem part = transform.GetChild(2).GetComponent<ParticleSystem>();
+            ParticleSystem partIce = transform.GetChild(3).GetComponent<ParticleSystem>();
+            ParticleSystem partFire = transform.GetChild(4).GetComponent<ParticleSystem>();
+            //if cant air dash and is on the ground.
+            if (!canAirDash && jumpCount > 0)
+            {
+                playerPhysics.AddForce(Vector3.Scale(playerPhysics.velocity.normalized, new Vector3(1, 0, 1)) * jumpForce / 1.2f * Time.fixedDeltaTime, ForceMode.Impulse);
+                canDashTimer = false;
+                if (!transform.GetChild(0).gameObject.activeSelf && !transform.GetChild(1).gameObject.activeSelf)
+                    part.Play();
+                if (transform.GetChild(0).gameObject.activeSelf)
+                    partIce.Play();
+                if (transform.GetChild(1).gameObject.activeSelf)
+                    partFire.Play();
+            }
+            //if canairdash and is on the ground.
+            else if (canAirDash && jumpCount > 0)
+            {
+                playerPhysics.AddForce(Vector3.Scale(playerPhysics.velocity.normalized, new Vector3(1, 0, 1)) * jumpForce / 1.2f * Time.fixedDeltaTime, ForceMode.Impulse);
+                canDashTimer = false;
+                if (!transform.GetChild(0).gameObject.activeSelf && !transform.GetChild(1).gameObject.activeSelf)
+                    part.Play();
+                if (transform.GetChild(0).gameObject.activeSelf)
+                    partIce.Play();
+                if (transform.GetChild(1).gameObject.activeSelf)
+                    partFire.Play();
+            }
+            //if can air dash and is not on the ground
+            else if (canAirDash)
+            {
+                playerPhysics.AddForce(Vector3.Scale(playerPhysics.velocity.normalized, new Vector3(1, 0, 1)) * jumpForce / 1.5f * Time.fixedDeltaTime, ForceMode.Impulse);
+                canDashTimer = false;
+                if (!transform.GetChild(0).gameObject.activeSelf && !transform.GetChild(1).gameObject.activeSelf)
+                    part.Play();
+                if (transform.GetChild(0).gameObject.activeSelf)
+                    partIce.Play();
+                if (transform.GetChild(1).gameObject.activeSelf)
+                    partFire.Play();
+            }
         }
 
         //if the Ice Shield button is hit, the Fire Shield Button isin't and the player can use the Ice Shield,
@@ -118,7 +175,7 @@ public class Player : MonoBehaviour
 
         if (GameController.gameMaster.playerCanUseFireShield)
             canFireShield = true;
-        else if(canFireShield)
+        else if (canFireShield)
             canFireShield = false;
     }
 
@@ -154,7 +211,7 @@ public class Player : MonoBehaviour
     void OnCollisionStay(Collision iOther)
     {
         //timer doesn't need to count higher than this.
-        if(collisionTimer < 1.0f)
+        if (collisionTimer < 1.0f)
             collisionTimer += Time.deltaTime;
 
         //if the collision timer is over its threshold, raycast to see if the player is on a environment object to reset the jump count.

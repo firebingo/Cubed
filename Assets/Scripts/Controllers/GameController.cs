@@ -16,6 +16,8 @@ public class GameController : MonoBehaviour
     public float playerMaxHealth;
     public float playerMaxIceShieldTime;
     public float playerMaxFireShieldTime;
+    public bool playerCanAirDash;
+    public bool playerCanDash;
 
     //Options
     public int SMAAQuality; //0 = off, 1 = low, 2 = medium, 3 = high, 4 = ultra 
@@ -42,10 +44,12 @@ public class GameController : MonoBehaviour
             Destroy(this.gameObject);
         }
 
-        playerMaxJumpCount = 1;
+        playerMaxJumpCount = 2;
         playerMaxFireShieldTime = 20;
         playerMaxIceShieldTime = 20;
         playerMaxHealth = 100;
+        playerCanAirDash = true;
+        playerCanDash = true;
     }
 
     // Unity Start() method
