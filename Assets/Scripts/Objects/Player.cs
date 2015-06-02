@@ -207,6 +207,15 @@ public class Player : MonoBehaviour
         }
     }
 
+    //used for placing trakers of where the cube hits after jumping
+    //void OnCollisionEnter(Collision iOther)
+    //{
+    //    if(iOther.gameObject.name == "Cube")
+    //    {
+    //        Instantiate(Resources.Load("Objects/HitPositionTracker"), iOther.contacts[0].point, Quaternion.EulerAngles(0,0,0));
+    //    }
+    //}
+
     //Unity OnCollisionStay() Method
     void OnCollisionStay(Collision iOther)
     {
