@@ -7,13 +7,10 @@ using System.Collections;
  *  in the TDD.
  */
 
-public class Player : MonoBehaviour
+public class Player : Entity
 {
-    public GameController gameMaster; //reference to the gameController.
     public Camera gCamera; //reference to the game's main camera
     Rigidbody playerPhysics; //reference to the players rigidbody
-    float moveSpeed; //the amount of force applied to 
-    float maxSpeed; //the max velocity of the player.
     float jumpForce; //the amount of impluse applied to make a player jump.
     public int jumpCount; //the amount of jumps the player can currently do.
     public int maxJumps; //the max amount of jumps the player can do.
@@ -24,13 +21,13 @@ public class Player : MonoBehaviour
     public bool canDashTimer; //whether the timer allows the player to dash
     bool canAirDash; //whether or not the player can dash in the air
     float dashTimer; //timer to reset the dash
+    public bool isDashing; //whether or not the player is currently dashing.
     public float collisionTimer; //timer for checking collision to reset the jumps.
     public float iceShieldTime; //how much time is left for the ice shield in seconds.
     float maxIceShieldTime; //the max time the ice shield can be used.
     public float fireShieldTime; //how much time is left for the fire shield in seconds.
     float maxFireShieldTime; //the max time the fire shield can be used.
-    public float health; //the current health of the player.
-    float maxHealth; //the player's max health.
+    
 
     //Unity Start() method
     void Start()
@@ -48,6 +45,7 @@ public class Player : MonoBehaviour
         canAirDash = gameMaster.playerCanAirDash;
         canDash = gameMaster.playerCanDash;
 
+        isDashing = false;
         playerPhysics = GetComponent<Rigidbody>();
         moveSpeed = 11.0f;
         maxSpeed = 3.0f;
@@ -59,6 +57,7 @@ public class Player : MonoBehaviour
     //Unity Update() method
     void Update()
     {
+        gameMaster.playerPosition = transform.position;
         jumpTimer += Time.deltaTime;
         dashTimer += Time.deltaTime;
         //if the Jump button is pressed, the player has aviliable jumps, and isin't multi-jumping too quickly,
@@ -71,6 +70,8 @@ public class Player : MonoBehaviour
             collisionTimer = 0;
         }
 
+        if(dashTimer > 0.75f)
+            isDashing = false;
         //if the dash timer is over the cooldown time, reset it and allow to dash
         if (dashTimer > 1.5f)
         {
@@ -119,6 +120,7 @@ public class Player : MonoBehaviour
                 if (transform.GetChild(1).gameObject.activeSelf)
                     partFire.Play();
             }
+            isDashing = true;
         }
 
         //if the Ice Shield button is hit, the Fire Shield Button isin't and the player can use the Ice Shield,

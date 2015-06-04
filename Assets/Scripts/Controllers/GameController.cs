@@ -18,6 +18,7 @@ public class GameController : MonoBehaviour
     public float playerMaxFireShieldTime;
     public bool playerCanAirDash;
     public bool playerCanDash;
+    public Vector3 playerPosition;
 
     //Options
     public int SMAAQuality; //0 = off, 1 = low, 2 = medium, 3 = high, 4 = ultra 
