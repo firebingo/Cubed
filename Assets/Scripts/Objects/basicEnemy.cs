@@ -51,10 +51,14 @@ public class basicEnemy : Entity
                 else if (!zFlip)
                     pushDirection.z += patrolAngle * Time.deltaTime;
                 break;
-
             case 1:
                 pushDirection = (GameController.gameMaster.playerPosition - transform.position).normalized;
                 break;
+        }
+
+        if(health < 0)
+        {
+            DestroyObject(this.gameObject);
         }
     }
 
@@ -62,5 +66,13 @@ public class basicEnemy : Entity
     void FixedUpdate()
     {
         entityPhysics.AddForceAtPosition(pushDirection.normalized * moveSpeed * Time.fixedDeltaTime, new Vector3(transform.position.x, transform.position.y + (0.35f * transform.localScale.y), transform.position.z - (0.5f * transform.localScale.z)), ForceMode.Force);
+    }
+
+    void OnCollisionEnter(Collision iOther)
+    {
+        if (iOther.gameObject.tag == "Player")
+        {
+            entityPhysics.AddForce(((iOther.contacts[0].normal).normalized + new Vector3(0, 0.25f, 0)) * Time.fixedDeltaTime * damagePushBack, ForceMode.Impulse);
+        }
     }
 }

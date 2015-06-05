@@ -19,6 +19,7 @@ public class GameController : MonoBehaviour
     public bool playerCanAirDash;
     public bool playerCanDash;
     public Vector3 playerPosition;
+    public float playerDefense;
 
     //Options
     public int SMAAQuality; //0 = off, 1 = low, 2 = medium, 3 = high, 4 = ultra 
@@ -49,6 +50,7 @@ public class GameController : MonoBehaviour
         playerMaxFireShieldTime = 20;
         playerMaxIceShieldTime = 20;
         playerMaxHealth = 100;
+        playerDefense = 1.0f;
         playerCanAirDash = true;
         playerCanDash = true;
     }
