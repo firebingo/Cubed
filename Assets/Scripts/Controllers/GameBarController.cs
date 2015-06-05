@@ -9,12 +9,12 @@ public class GameBarController : MonoBehaviour
     float pastIceTime; //the last ice time
     float pastFireTime; //the last fire time
     float pastHP; //the last HP amount
-    Vector3 baseIcePos;
-    Vector3 baseFirePos;
-    Vector3 baseBarPos;
+    Vector3 baseBarPos; //the starting position of the bar
+    bool isCoroutine;
 
     void Start()
     {
+        isCoroutine = false;
         pastIceTime = 0.0f;
         pastFireTime = 0.0f;
         pastHP = 0.0f;
@@ -40,7 +40,8 @@ public class GameBarController : MonoBehaviour
                 transform.parent.position = baseBarPos;
             }
             else
-                transform.parent.position = baseBarPos + new Vector3(0.0f, 100.0f, 0.0f);
+                if (!isCoroutine)
+                StartCoroutine("returnBar");
         }
 
         if (this.gameObject.name == "IceBar")
@@ -54,7 +55,8 @@ public class GameBarController : MonoBehaviour
                 transform.parent.position = baseBarPos;
             }
             else
-                transform.parent.position = baseBarPos + new Vector3(0.0f, 100.0f, 0.0f);
+                if(!isCoroutine)
+                    StartCoroutine("returnBar");
         }
         if (this.gameObject.name == "FireBar")
         {
@@ -67,7 +69,17 @@ public class GameBarController : MonoBehaviour
                 transform.parent.position = baseBarPos;
             }
             else
-                transform.parent.position = baseBarPos + new Vector3(0.0f, 100.0f, 0.0f);
+                if (!isCoroutine)
+                StartCoroutine("returnBar");
         }
+    }
+
+    //makes the bars wait to go off screen after they aren't being changed anymore
+    IEnumerator returnBar()
+    {
+        isCoroutine = true;
+        yield return new WaitForSeconds(2.5f);
+        transform.parent.position = baseBarPos + new Vector3(0.0f, 2000.0f, 0.0f);
+        isCoroutine = false;
     }
 }
