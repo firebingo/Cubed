@@ -61,8 +61,8 @@ ModelImporter:
     secondaryUVPackMargin: 4
     useFileScale: 1
   tangentSpace:
-    normalSmoothAngle: 50
-    splitTangentsAcrossUV: 1
+    normalSmoothAngle: 180
+    splitTangentsAcrossUV: 0
     normalImportMode: 0
     tangentImportMode: 1
   importAnimation: 1

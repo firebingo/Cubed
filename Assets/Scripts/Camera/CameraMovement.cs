@@ -7,7 +7,10 @@ public class CameraMovement : MonoBehaviour
 {
     public GameController gameMaster; // reference to the game controller
     public GameObject Target; //the object the camera should rotate around, set in editor.
-    public Vector3 targetPosition;
+    public Vector3 targetPosition; //the target position for the camera to move to.
+    float cameraSpeed; //the speed of the camera's movement.
+    bool inWater; //whether or not the camera is in water.
+    public ColorCorrectionLookup waterCorrect; //reference to the color correction for the water.
 
     // Unity Start() method
     void Start()
@@ -15,6 +18,10 @@ public class CameraMovement : MonoBehaviour
         targetPosition = new Vector3(0.0f, 1.5f, -1.5f);
         transform.localPosition = targetPosition;
         gameMaster = GameController.gameMaster;
+        cameraSpeed = 2.3f;
+        waterCorrect = GetComponent<ColorCorrectionLookup>();
+        inWater = false;
+        waterCorrect.enabled = false;
         setQuality();
     }
 
@@ -23,37 +30,27 @@ public class CameraMovement : MonoBehaviour
     {
         if (Target)
         {
+            //face the player
             transform.LookAt(Target.transform);
+
             //Horizontal camera movement
             if (Input.GetAxis("CameraHorizontal") > 0)
             {
-                //Ray ray = new Ray(transform.position, -(transform.right));
-                //if (!Physics.Raycast(ray, 0.3f))
-                //transform.RotateAround(Target.transform.position, Vector3.up, 85 * Input.GetAxis("CameraHorizontal") * Time.deltaTime);
-                //if (transform.localPosition.x < 2.0f)
-                targetPosition += transform.right * Input.GetAxis("CameraHorizontal") * Time.deltaTime;
+                targetPosition += transform.right.normalized * -Input.GetAxis("CameraHorizontal") * cameraSpeed * Time.deltaTime;
             }
             else if (Input.GetAxis("CameraHorizontal") < 0)
             {
-                //Ray ray = new Ray(transform.position, (transform.right));
-                //if (!Physics.Raycast(ray, 0.3f))
-                //transform.RotateAround(Target.transform.position, Vector3.up, 85 * Input.GetAxis("CameraHorizontal") * Time.deltaTime);
-                //if (transform.localPosition.x > -2.0f)
-                targetPosition -= transform.right * Input.GetAxis("CameraHorizontal") * Time.deltaTime;
+                targetPosition += transform.right.normalized * -Input.GetAxis("CameraHorizontal") * cameraSpeed * Time.deltaTime;
             }
 
             //Vertical camera movement
-            if (Input.GetAxis("CameraVertical") > 0)
+            if (Input.GetAxis("CameraVertical") > 0 && (transform.localEulerAngles.x < 80 || transform.localEulerAngles.x > 110))
             {
-                //transform.RotateAround(Target.transform.position, transform.right, 65 * Input.GetAxis("CameraVertical") * Time.deltaTime);
-                targetPosition += transform.up * Time.deltaTime;
+                targetPosition += transform.up.normalized * Input.GetAxis("CameraVertical") * cameraSpeed * Time.deltaTime;
             }
             else if (Input.GetAxis("CameraVertical") < 0)
             {
-                //Ray ray = new Ray(transform.position, -(transform.up));
-                //if (!Physics.Raycast(ray, 0.35f))
-                //transform.RotateAround(Target.transform.position, transform.right, 65 * Input.GetAxis("CameraVertical") * Time.deltaTime);
-                targetPosition -= transform.up * Time.deltaTime;
+                targetPosition += transform.up.normalized * Input.GetAxis("CameraVertical") * cameraSpeed * Time.deltaTime;
             }
         }
 
@@ -61,12 +58,39 @@ public class CameraMovement : MonoBehaviour
         if (gameMaster.refreshQuality)
             setQuality();
     }
-    
+
     void LateUpdate()
     {
         if (Target)
         {
-            transform.localPosition = Vector3.Lerp(transform.localPosition, targetPosition, 0.1f);
+            //if the camera is too far away from the player, move it closer.
+            if (Vector3.Distance(transform.position, Target.transform.position) > 2.2)
+            {
+                targetPosition += transform.forward * 0.1f;
+            }
+            //if the camera is too close to the player, move it further.
+            if (Vector3.Distance(transform.position, Target.transform.position) < 2.0)
+            {
+                targetPosition -= transform.forward * 0.05f;
+            }
+            RaycastHit hit;
+            //check if the camera is moving towards a wall
+            if (Physics.Raycast(transform.position, (targetPosition - transform.localPosition).normalized, out hit, 0.35f, 1 << 8))
+            {
+                targetPosition += hit.normal * 0.1f;
+            }
+            //check if the camera is too close to the floor and move it up if it is.
+            if (Physics.Raycast(transform.position, -transform.forward, out hit, 0.35f, 1 << 8))
+            {
+                targetPosition += transform.forward * 0.3f;
+            }
+            //check if the camera has anything behind it, and move it up if there is.
+            if (Physics.Raycast(transform.position, Vector3.down, out hit, 0.35f, 1 << 8))
+            {
+                targetPosition += Vector3.up * 0.05f;
+            }
+            //move the camera
+            transform.localPosition = Vector3.Lerp(transform.localPosition, targetPosition, 0.05f);
         }
     }
 
@@ -140,6 +164,24 @@ public class CameraMovement : MonoBehaviour
             {
                 GetComponent<BloomOptimized>().enabled = true;
                 GetComponent<SunShafts>().enabled = true;
+            }
+        }
+    }
+
+    void OnTriggerExit(Collider iOther)
+    {
+        Debug.Log("Hit");
+        if (iOther.gameObject.tag == "Water")
+        {
+            if(transform.position.y > iOther.transform.position.y)
+            {
+                inWater = false;
+                waterCorrect.enabled = false;
+            }
+            else if(transform.position.y < iOther.transform.position.y)
+            {
+                inWater = true;
+                waterCorrect.enabled = true;
             }
         }
     }

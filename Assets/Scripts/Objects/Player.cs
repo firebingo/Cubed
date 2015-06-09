@@ -30,6 +30,8 @@ public class Player : Entity
     float Defense; //the defense multiplier
     public float invincTime; //how long your invincible after getting hit.
     float invincTimer; //timer for invicibility
+    bool inWater; //whether or not the player is in the water.
+    float gravityMul;
 
     //Unity Start() method
     void Start()
@@ -47,6 +49,8 @@ public class Player : Entity
         canAirDash = gameMaster.playerCanAirDash;
         canDash = gameMaster.playerCanDash;
         Defense = gameMaster.playerDefense;
+        inWater = false;
+        gravityMul = 1.0f;
 
         isDashing = false;
         playerPhysics = GetComponent<Rigidbody>();
@@ -193,6 +197,9 @@ public class Player : Entity
     //Unity FixedUpdate() method.
     void FixedUpdate()
     {
+        //Gravity, be sure to disable the rigidbody's gravity so it just uses this.
+        playerPhysics.AddForce(Physics.gravity * playerPhysics.mass * gravityMul);
+
         //if the player isin't too close to a environment object.
         if (!Physics.Raycast(transform.position, playerPhysics.velocity, 0.25f, 1 << 8))
         {
@@ -293,6 +300,29 @@ public class Player : Entity
             if (Physics.Raycast(ray, 0.2f, 1 << 8))
             {
                 jumpCount = maxJumps;
+            }
+        }
+    }
+
+    void OnTriggerExit(Collider iOther)
+    {
+        Debug.Log("Hit");
+        if (iOther.gameObject.tag == "Water")
+        {
+            if (transform.position.y > iOther.transform.position.y)
+            {
+                inWater = false;
+                gravityMul = 1.0f;
+                moveSpeed = 11.0f;
+                jumpForce = 4.0f;
+                
+            }
+            else if (transform.position.y < iOther.transform.position.y)
+            {
+                inWater = true;
+               gravityMul = 0.5f;
+               moveSpeed = 5.5f;
+               jumpForce = 2.9f; 
             }
         }
     }
