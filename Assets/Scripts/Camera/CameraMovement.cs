@@ -7,10 +7,13 @@ public class CameraMovement : MonoBehaviour
 {
     public GameController gameMaster; // reference to the game controller
     public GameObject Target; //the object the camera should rotate around, set in editor.
+    public Vector3 targetPosition;
 
     // Unity Start() method
     void Start()
     {
+        targetPosition = new Vector3(0.0f, 1.5f, -1.5f);
+        transform.localPosition = targetPosition;
         gameMaster = GameController.gameMaster;
         setQuality();
     }
@@ -20,30 +23,51 @@ public class CameraMovement : MonoBehaviour
     {
         if (Target)
         {
+            transform.LookAt(Target.transform);
             //Horizontal camera movement
             if (Input.GetAxis("CameraHorizontal") > 0)
             {
-                transform.RotateAround(Target.transform.position, Vector3.up, 85 * Input.GetAxis("CameraHorizontal") * Time.deltaTime);
+                //Ray ray = new Ray(transform.position, -(transform.right));
+                //if (!Physics.Raycast(ray, 0.3f))
+                //transform.RotateAround(Target.transform.position, Vector3.up, 85 * Input.GetAxis("CameraHorizontal") * Time.deltaTime);
+                //if (transform.localPosition.x < 2.0f)
+                targetPosition += transform.right * Input.GetAxis("CameraHorizontal") * Time.deltaTime;
             }
             else if (Input.GetAxis("CameraHorizontal") < 0)
             {
-                transform.RotateAround(Target.transform.position, Vector3.up, 85 * Input.GetAxis("CameraHorizontal") * Time.deltaTime);
+                //Ray ray = new Ray(transform.position, (transform.right));
+                //if (!Physics.Raycast(ray, 0.3f))
+                //transform.RotateAround(Target.transform.position, Vector3.up, 85 * Input.GetAxis("CameraHorizontal") * Time.deltaTime);
+                //if (transform.localPosition.x > -2.0f)
+                targetPosition -= transform.right * Input.GetAxis("CameraHorizontal") * Time.deltaTime;
             }
 
             //Vertical camera movement
-            if (Input.GetAxis("CameraVertical") > 0 && transform.eulerAngles.x < 80)
+            if (Input.GetAxis("CameraVertical") > 0)
             {
-                transform.RotateAround(Target.transform.position, transform.right, 65 * Input.GetAxis("CameraVertical") * Time.deltaTime);
+                //transform.RotateAround(Target.transform.position, transform.right, 65 * Input.GetAxis("CameraVertical") * Time.deltaTime);
+                targetPosition += transform.up * Time.deltaTime;
             }
-            else if (Input.GetAxis("CameraVertical") < 0 && transform.eulerAngles.x > 10)
+            else if (Input.GetAxis("CameraVertical") < 0)
             {
-                transform.RotateAround(Target.transform.position, transform.right, 65 * Input.GetAxis("CameraVertical") * Time.deltaTime);
+                //Ray ray = new Ray(transform.position, -(transform.up));
+                //if (!Physics.Raycast(ray, 0.35f))
+                //transform.RotateAround(Target.transform.position, transform.right, 65 * Input.GetAxis("CameraVertical") * Time.deltaTime);
+                targetPosition -= transform.up * Time.deltaTime;
             }
         }
 
         //if refresh quality settings is true, refresh quality settings.
         if (gameMaster.refreshQuality)
             setQuality();
+    }
+    
+    void LateUpdate()
+    {
+        if (Target)
+        {
+            transform.localPosition = Vector3.Lerp(transform.localPosition, targetPosition, 0.1f);
+        }
     }
 
     //set the quality settings important for this object

@@ -4,7 +4,6 @@ using System.Collections;
 
 public class MenuShadows : MonoBehaviour
 {
-
     Slider shadowSlider; //reference to the ui slider
 
     // Use this for initialization
