@@ -306,7 +306,6 @@ public class Player : Entity
 
     void OnTriggerExit(Collider iOther)
     {
-        Debug.Log("Hit");
         if (iOther.gameObject.tag == "Water")
         {
             if (transform.position.y > iOther.transform.position.y)
