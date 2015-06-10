@@ -24,6 +24,7 @@ $RECYCLE.BIN/
 # Raw Max Files
 *.max
 *.max.meta
+WIPAssets/
 
 # =============== #
 # Unity generated #
