@@ -28,6 +28,7 @@ public class GameController : MonoBehaviour
     public int reflectionQuality; //the resolution of cubemaps. 0 = 128, 1 = 256, 2 = 512, 3 = 1024
     public int reflectionUpdateFrequency; //frequnecy of cubemap updates, 0 = on awake, 1 = 0.8s, 2 = 0.5s, 3 = 0.25s, 4 = 0.1s, 5 = 0.05s
     public int shadowQuality; //0 = low res, 2 cascades, 1 = medium, two cascades, 2 = high, four cascades, 3 = very high
+    public int waterQuality; //0 = simple, 1 = 128, 2 = 256, 3 = 512, 4 = 1024 
     public bool vSync; // false = off, true = on
     public bool Fullscreen; // true = fullscreen, false = windowed
 
@@ -135,7 +136,7 @@ public class GameController : MonoBehaviour
         BinaryFormatter bf = new BinaryFormatter();
         FileStream file = File.Open(Application.dataPath + "/gameOptions.wort", FileMode.OpenOrCreate);
 
-        GameOptions options = new GameOptions(SMAAQuality, SSAOQuality, postProcessingQuality, reflectionQuality, reflectionUpdateFrequency, shadowQuality, vSync, Fullscreen);
+        GameOptions options = new GameOptions(SMAAQuality, SSAOQuality, postProcessingQuality, reflectionQuality, reflectionUpdateFrequency, shadowQuality, vSync, Fullscreen, waterQuality);
 
         bf.Serialize(file, options);
         file.Close();
@@ -159,6 +160,7 @@ public class GameController : MonoBehaviour
             shadowQuality = options.shadowQuality;
             vSync = options.vSync;
             Fullscreen = options.Fullscreen;
+            waterQuality = options.waterQuality;
             return true;
         }
         else
@@ -177,7 +179,7 @@ public class GameController : MonoBehaviour
 [Serializable]
 class GameOptions
 {
-    public GameOptions(int iSMAAQuality, int iSSAOQuality, int iPostProcessingQuality, int iReflectionQuality, int iReflectionUpdateFrequency, int iShadowQuality, bool iVsync, bool iFullScreen)
+    public GameOptions(int iSMAAQuality, int iSSAOQuality, int iPostProcessingQuality, int iReflectionQuality, int iReflectionUpdateFrequency, int iShadowQuality, bool iVsync, bool iFullScreen, int iWaterQuality)
     {
         SMAAQuality = iSMAAQuality;
         SSAOQuality = iSSAOQuality;
@@ -185,6 +187,7 @@ class GameOptions
         reflectionQuality = iReflectionQuality;
         reflectionUpdateFrequency = iReflectionUpdateFrequency;
         shadowQuality = iShadowQuality;
+        waterQuality = iWaterQuality;
         vSync = iVsync;
         Fullscreen = iFullScreen;
     }
@@ -196,6 +199,7 @@ class GameOptions
     public int reflectionQuality; //the resolution of cubemaps. 0 = 128, 1 = 256, 2 = 512, 3 = 1024
     public int reflectionUpdateFrequency; //frequnecy of cubemap updates, 0 = on awake, 1 = 0.8s, 2 = 0.5s, 3 = 0.25s, 4 = 0.1s, 5 = 0.05s
     public int shadowQuality; //0 = low res, 2 cascades, 1 = medium, two cascades, 2 = high, four cascades, 3 = very high
+    public int waterQuality; //0 = simple, 1 = 128, 2 = 256, 3 = 512, 4 = 1024 
     public bool vSync; // false = off, true = on
     public bool Fullscreen; // true = fullscreen, false = windowed
 }
