@@ -54,9 +54,9 @@ public class Player : Entity
 
         isDashing = false;
         playerPhysics = GetComponent<Rigidbody>();
-        moveSpeed = 11.0f;
+        moveSpeed = 19.0f;
         maxSpeed = 3.0f;
-        jumpForce = 4.0f;
+        jumpForce = 6.1f;
         jumpCount = maxJumps;
         gCamera = Camera.main;
     }

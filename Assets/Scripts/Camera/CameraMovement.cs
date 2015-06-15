@@ -21,7 +21,8 @@ public class CameraMovement : MonoBehaviour
         cameraSpeed = 2.3f;
         waterCorrect = GetComponent<ColorCorrectionLookup>();
         inWater = false;
-        waterCorrect.enabled = false;
+        if(waterCorrect)
+            waterCorrect.enabled = false;
         setQuality();
     }
 

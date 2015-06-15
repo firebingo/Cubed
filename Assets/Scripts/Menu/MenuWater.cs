@@ -4,7 +4,6 @@ using System.Collections;
 
 public class MenuWater : MonoBehaviour
 {
-
     Slider waterSlider; //reference to the ui slider
 
     // Use this for initialization
