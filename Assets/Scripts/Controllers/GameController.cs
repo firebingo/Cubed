@@ -29,6 +29,7 @@ public class GameController : MonoBehaviour
     public int reflectionUpdateFrequency; //frequnecy of cubemap updates, 0 = on awake, 1 = 0.8s, 2 = 0.5s, 3 = 0.25s, 4 = 0.1s, 5 = 0.05s
     public int shadowQuality; //0 = low res, 2 cascades, 1 = medium, two cascades, 2 = high, four cascades, 3 = very high
     public int waterQuality; //0 = simple, 1 = 128, 2 = 256, 3 = 512, 4 = 1024 
+    public int frameTarget; //frame rate target, 0 = 30, 1 = 60, 2 = 75, 3 = 120, 4 = 144, 5 = 300
     public bool vSync; // false = off, true = on
     public bool Fullscreen; // true = fullscreen, false = windowed
 
@@ -69,6 +70,8 @@ public class GameController : MonoBehaviour
             reflectionQuality = 2;
             reflectionUpdateFrequency = 3;
             shadowQuality = 2;
+            waterQuality = 2;
+            frameTarget = 5;
             vSync = false;
             Fullscreen = true;
             refreshQuality = true;
@@ -119,6 +122,20 @@ public class GameController : MonoBehaviour
         else
             Screen.fullScreen = false;
 
+        //frame rate target
+        if (frameTarget == 0)
+            Application.targetFrameRate = 30;
+        if (frameTarget == 1)
+            Application.targetFrameRate = 60;
+        if (frameTarget == 2)
+            Application.targetFrameRate = 75;
+        if (frameTarget == 3)
+            Application.targetFrameRate = 120;
+        if (frameTarget == 4)
+            Application.targetFrameRate = 144;
+        if (frameTarget == 5)
+            Application.targetFrameRate = 300;
+
         StartCoroutine("waitForQualityRefresh");
     }
 
@@ -136,7 +153,7 @@ public class GameController : MonoBehaviour
         BinaryFormatter bf = new BinaryFormatter();
         FileStream file = File.Open(Application.dataPath + "/gameOptions.wort", FileMode.OpenOrCreate);
 
-        GameOptions options = new GameOptions(SMAAQuality, SSAOQuality, postProcessingQuality, reflectionQuality, reflectionUpdateFrequency, shadowQuality, vSync, Fullscreen, waterQuality);
+        GameOptions options = new GameOptions(SMAAQuality, SSAOQuality, postProcessingQuality, reflectionQuality, reflectionUpdateFrequency, shadowQuality, vSync, Fullscreen, waterQuality, frameTarget);
 
         bf.Serialize(file, options);
         file.Close();
@@ -161,6 +178,7 @@ public class GameController : MonoBehaviour
             vSync = options.vSync;
             Fullscreen = options.Fullscreen;
             waterQuality = options.waterQuality;
+            frameTarget = options.frameTarget;
             return true;
         }
         else
@@ -179,7 +197,7 @@ public class GameController : MonoBehaviour
 [Serializable]
 class GameOptions
 {
-    public GameOptions(int iSMAAQuality, int iSSAOQuality, int iPostProcessingQuality, int iReflectionQuality, int iReflectionUpdateFrequency, int iShadowQuality, bool iVsync, bool iFullScreen, int iWaterQuality)
+    public GameOptions(int iSMAAQuality, int iSSAOQuality, int iPostProcessingQuality, int iReflectionQuality, int iReflectionUpdateFrequency, int iShadowQuality, bool iVsync, bool iFullScreen, int iWaterQuality, int iFrameTarget)
     {
         SMAAQuality = iSMAAQuality;
         SSAOQuality = iSSAOQuality;
@@ -190,6 +208,7 @@ class GameOptions
         waterQuality = iWaterQuality;
         vSync = iVsync;
         Fullscreen = iFullScreen;
+        frameTarget = iFrameTarget;
     }
 
     //Options
@@ -200,6 +219,7 @@ class GameOptions
     public int reflectionUpdateFrequency; //frequnecy of cubemap updates, 0 = on awake, 1 = 0.8s, 2 = 0.5s, 3 = 0.25s, 4 = 0.1s, 5 = 0.05s
     public int shadowQuality; //0 = low res, 2 cascades, 1 = medium, two cascades, 2 = high, four cascades, 3 = very high
     public int waterQuality; //0 = simple, 1 = 128, 2 = 256, 3 = 512, 4 = 1024 
+    public int frameTarget; //frame rate target, 0 = 30, 1 = 60, 2 = 75, 3 = 120, 4 = 144, 5 = 300
     public bool vSync; // false = off, true = on
     public bool Fullscreen; // true = fullscreen, false = windowed
 }
