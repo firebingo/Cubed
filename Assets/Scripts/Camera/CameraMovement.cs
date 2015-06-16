@@ -9,7 +9,7 @@ public class CameraMovement : MonoBehaviour
     public GameObject Target; //the object the camera should rotate around, set in editor.
     public Vector3 targetPosition; //the target position for the camera to move to.
     float cameraSpeed; //the speed of the camera's movement.
-    bool inWater; //whether or not the camera is in water.
+    public bool inWater; //whether or not the camera is in water.
     public ColorCorrectionLookup waterCorrect; //reference to the color correction for the water.
     public ColorCorrectionLookup lavaCorrect;
 
