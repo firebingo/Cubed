@@ -31,7 +31,8 @@ public class Player : Entity
     public float invincTime; //how long your invincible after getting hit.
     float invincTimer; //timer for invicibility
     bool inWater; //whether or not the player is in the water.
-    float gravityMul;
+    float gravityMul; //gravity multiplier
+    Vector3 checkpointPos; //the position of the checkpoint the player will respawn at if they die.
 
     //Unity Start() method
     void Start()
@@ -54,11 +55,14 @@ public class Player : Entity
 
         isDashing = false;
         playerPhysics = GetComponent<Rigidbody>();
-        moveSpeed = 19.0f;
+        //moveSpeed = 19.5f;
+        //jumpForce = 6.1f;
+        moveSpeed = 11.0f;
+        jumpForce = 4.0f;
         maxSpeed = 3.0f;
-        jumpForce = 6.1f;
         jumpCount = maxJumps;
         gCamera = Camera.main;
+        checkpointPos = transform.position;
     }
 
     //Unity Update() method
@@ -192,6 +196,13 @@ public class Player : Entity
             canFireShield = true;
         else if (canFireShield)
             canFireShield = false;
+
+        //if the player is out of health
+        if(health < 0)
+        {
+            health = maxHealth;
+            transform.position = checkpointPos;
+        }
     }
 
     //Unity FixedUpdate() method.
@@ -304,6 +315,18 @@ public class Player : Entity
         }
     }
 
+    void OnTriggerEnter(Collider iOther)
+    {
+        if(iOther.gameObject.tag == "Checkpoint")
+        {
+            if(iOther.GetComponent<Checkpoint>().hasCheckpoint == false)
+            {
+                checkpointPos = iOther.gameObject.transform.position;
+                iOther.GetComponent<Checkpoint>().hasCheckpoint = true;
+            }
+        }
+    }
+
     void OnTriggerExit(Collider iOther)
     {
         if (iOther.gameObject.tag == "Water")
@@ -322,6 +345,24 @@ public class Player : Entity
                gravityMul = 0.5f;
                moveSpeed = 5.5f;
                jumpForce = 2.9f; 
+            }
+        }
+        if (iOther.gameObject.tag == "Lava")
+        {
+            if (transform.position.y > iOther.transform.position.y)
+            {
+                inWater = false;
+                gravityMul = 1.0f;
+                moveSpeed = 11.0f;
+                jumpForce = 4.0f;
+
+            }
+            else if (transform.position.y < iOther.transform.position.y)
+            {
+                inWater = true;
+                gravityMul = 0.5f;
+                moveSpeed = 4.5f;
+                jumpForce = 2.3f;
             }
         }
     }

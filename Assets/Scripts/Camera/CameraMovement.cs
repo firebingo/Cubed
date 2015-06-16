@@ -11,6 +11,7 @@ public class CameraMovement : MonoBehaviour
     float cameraSpeed; //the speed of the camera's movement.
     bool inWater; //whether or not the camera is in water.
     public ColorCorrectionLookup waterCorrect; //reference to the color correction for the water.
+    public ColorCorrectionLookup lavaCorrect;
 
     // Unity Start() method
     void Start()
@@ -19,10 +20,11 @@ public class CameraMovement : MonoBehaviour
         transform.localPosition = targetPosition;
         gameMaster = GameController.gameMaster;
         cameraSpeed = 2.3f;
-        waterCorrect = GetComponent<ColorCorrectionLookup>();
         inWater = false;
         if(waterCorrect)
             waterCorrect.enabled = false;
+        if (lavaCorrect)
+            lavaCorrect.enabled = false;
         setQuality();
     }
 
@@ -171,7 +173,6 @@ public class CameraMovement : MonoBehaviour
 
     void OnTriggerExit(Collider iOther)
     {
-        Debug.Log("Hit");
         if (iOther.gameObject.tag == "Water")
         {
             if(transform.position.y > iOther.transform.position.y)
@@ -183,6 +184,19 @@ public class CameraMovement : MonoBehaviour
             {
                 inWater = true;
                 waterCorrect.enabled = true;
+            }
+        }
+        if (iOther.gameObject.tag == "Lava")
+        {
+            if (transform.position.y > iOther.transform.position.y)
+            {
+                inWater = false;
+                lavaCorrect.enabled = false;
+            }
+            else if (transform.position.y < iOther.transform.position.y)
+            {
+                inWater = true;
+                lavaCorrect.enabled = true;
             }
         }
     }
