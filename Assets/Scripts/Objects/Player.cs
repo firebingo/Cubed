@@ -370,6 +370,10 @@ public class Player : Entity
                 iOther.GetComponent<Checkpoint>().hasCheckpoint = true;
             }
         }
+        if(iOther.gameObject.tag == "Spring")
+        {
+            playerPhysics.AddForce(new Vector3(0, 1, 0) * jumpForce * iOther.transform.parent.GetComponent<Spring>().springPower * Time.fixedDeltaTime, ForceMode.Impulse);
+        }
     }
 
     void OnTriggerExit(Collider iOther)
