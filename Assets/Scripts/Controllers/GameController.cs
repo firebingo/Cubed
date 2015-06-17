@@ -55,6 +55,8 @@ public class GameController : MonoBehaviour
         playerDefense = 1.0f;
         playerCanAirDash = true;
         playerCanDash = true;
+        playerCanUseFireShield = true;
+        playerCanUseIceShield = true;
     }
 
     // Unity Start() method
