@@ -372,7 +372,14 @@ public class Player : Entity
         }
         if(iOther.gameObject.tag == "Spring")
         {
-            playerPhysics.AddForce(new Vector3(0, 1, 0) * jumpForce * iOther.transform.parent.GetComponent<Spring>().springPower * Time.fixedDeltaTime, ForceMode.Impulse);
+            Spring springScript = iOther.transform.parent.GetComponent<Spring>();
+            if (springScript.target)
+            {
+                playerPhysics.velocity = new Vector3(0, 0, 0);
+                playerPhysics.AddForce(((springScript.target.position + new Vector3(0, 15f, 0)) - iOther.transform.parent.position).normalized * springScript.springPower * Time.fixedDeltaTime, ForceMode.Impulse);
+            }
+            else
+                playerPhysics.AddForce(new Vector3(0, 1, 0) * springScript.springPower * Time.fixedDeltaTime, ForceMode.Impulse);
         }
     }
 
