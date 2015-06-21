@@ -305,10 +305,9 @@ public class Player : Entity
         {
             if (invincTimer <= 0)
             {
-                float damage = 0.0f; //tracks the damage that needs to be done
+                float damage = 0.0f; //tracks the damage that needs to be done to the player
                 float enemyDamage = 0.0f; //tracks the damage that needs to be done to the enemy
                 Entity collisionObject = iOther.gameObject.GetComponent<Entity>();
-                //if the velocity is lower than 1 do the enemies base damage, otherwise reduce the damage based on the velocity.
                 //if the velocity is lower than 1 do reduced damage to the enemy based on the velocity, otherwise increase the damage.
                 if (playerPhysics.velocity.magnitude < 1.0f)
                 {
@@ -321,7 +320,7 @@ public class Player : Entity
                     //if the player is dashing increase the damage based on the velocity.
                     if (isDashing)
                     {
-                        damage = (collisionObject.baseDamage / 1.5f) / playerPhysics.velocity.magnitude;
+                        damage = (collisionObject.baseDamage * 0.66f);
                         if (playerPhysics.velocity.magnitude > 2)
                             enemyDamage = baseDamage * 2;
                         else
@@ -329,7 +328,7 @@ public class Player : Entity
                     }
                     else
                     {
-                        damage = collisionObject.baseDamage / playerPhysics.velocity.magnitude;
+                        damage = collisionObject.baseDamage;
                         enemyDamage = baseDamage;
                     }
                 }
@@ -397,6 +396,11 @@ public class Player : Entity
             }
             else
                 playerPhysics.AddForce(new Vector3(0, 1, 0) * springScript.springPower * Time.fixedDeltaTime, ForceMode.Impulse);
+        }
+        if (iOther.gameObject.tag == "Lava")
+        {
+            if (iOther == iOther.gameObject.GetComponent<RisingLava>().lavaStart)
+                iOther.gameObject.GetComponent<RisingLava>().isMoving = true;
         }
     }
 

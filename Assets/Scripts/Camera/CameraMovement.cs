@@ -78,17 +78,17 @@ public class CameraMovement : MonoBehaviour
             }
             RaycastHit hit;
             //check if the camera is moving towards a wall
-            if (Physics.Raycast(transform.position, (targetPosition - transform.localPosition).normalized, out hit, 0.35f, 1 << 8))
+            if (Physics.Raycast(transform.position, (targetPosition - transform.localPosition).normalized, out hit, 0.45f, 1 << 8))
             {
                 targetPosition += hit.normal * 0.1f;
             }
             //check if the camera is too close to the floor and move it up if it is.
-            if (Physics.Raycast(transform.position, -transform.forward, out hit, 0.35f, 1 << 8))
+            if (Physics.Raycast(transform.position, -transform.forward, out hit, 0.45f, 1 << 8))
             {
                 targetPosition += transform.forward * 0.3f;
             }
-            //check if the camera has anything behind it, and move it up if there is.
-            if (Physics.Raycast(transform.position, Vector3.down, out hit, 0.35f, 1 << 8))
+            //check if the camera has anything behind it or in front of it, and move it up if there is.
+            if (Physics.Raycast(transform.position, Vector3.down, out hit, 0.45f, 1 << 8) || Physics.Raycast(transform.position, transform.forward, out hit, 0.35f, 1 << 8))
             {
                 targetPosition += Vector3.up * 0.05f;
             }

@@ -9,11 +9,15 @@ public class basicEnemy : Entity
     bool xFlip; //used for the vector rotation
     bool zFlip; //used for the vector rotation
     float distanceToPlayer; //the distance away from the player
-    int enemyState; //what state the enemy is in, 0 = wandering, 1 = following player
+    int enemyState; //what state the enemy is in, 0 = wandering, 1 = following player, 2 = wait
+    public float seekDistance; //the distance that the enemy will seek the player
+    public bool waitStill;
+    ParticleSystem deathparts;
 
     // Use this for initialization
     void Start()
     {
+        deathparts = transform.GetChild(0).GetComponent<ParticleSystem>();
         entityPhysics = GetComponent<Rigidbody>();
         pushDirection = new Vector3(1, 0, 0);
     }
@@ -22,8 +26,11 @@ public class basicEnemy : Entity
     void Update()
     {
         distanceToPlayer = Vector3.Distance(transform.position, GameController.gameMaster.playerPosition);
-        if (distanceToPlayer < 1.6f)
+
+        if (distanceToPlayer < seekDistance)
             enemyState = 1;
+        else if (waitStill)
+            enemyState = 2;
         else
             enemyState = 0;
 
@@ -54,10 +61,19 @@ public class basicEnemy : Entity
             case 1:
                 pushDirection = (GameController.gameMaster.playerPosition - transform.position).normalized;
                 break;
+            case 2:
+                pushDirection = new Vector3(0, 0, 0);
+                break;
         }
 
-        if(health < 0)
+        if (health < 0)
         {
+            if (deathparts)
+            {
+                deathparts.GetComponent<deathParts>().startDying();
+                deathparts.transform.parent = null;
+                deathparts.Play();
+            }
             DestroyObject(this.gameObject);
         }
     }
