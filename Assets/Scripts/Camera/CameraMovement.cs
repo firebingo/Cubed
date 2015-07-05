@@ -39,21 +39,21 @@ public class CameraMovement : MonoBehaviour
             //Horizontal camera movement
             if (Input.GetAxis("CameraHorizontal") > 0)
             {
-                targetPosition += transform.right.normalized * -Input.GetAxis("CameraHorizontal") * cameraSpeed * Time.deltaTime;
+                targetPosition += (transform.right.normalized * -Input.GetAxis("CameraHorizontal") * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraXInvert;
             }
             else if (Input.GetAxis("CameraHorizontal") < 0)
             {
-                targetPosition += transform.right.normalized * -Input.GetAxis("CameraHorizontal") * cameraSpeed * Time.deltaTime;
+                targetPosition += (transform.right.normalized * -Input.GetAxis("CameraHorizontal") * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraXInvert;
             }
 
             //Vertical camera movement
             if (Input.GetAxis("CameraVertical") > 0 && (transform.localEulerAngles.x < 80 || transform.localEulerAngles.x > 110))
             {
-                targetPosition += transform.up.normalized * Input.GetAxis("CameraVertical") * cameraSpeed * Time.deltaTime;
+                targetPosition += (transform.up.normalized * Input.GetAxis("CameraVertical") * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraYInvert;
             }
             else if (Input.GetAxis("CameraVertical") < 0)
             {
-                targetPosition += transform.up.normalized * Input.GetAxis("CameraVertical") * cameraSpeed * Time.deltaTime;
+                targetPosition += (transform.up.normalized * Input.GetAxis("CameraVertical") * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraYInvert;
             }
         }
 
