@@ -6,6 +6,7 @@ public class Spring : MonoBehaviour
     public float springPower; //the power of the spring
     Animation anim;
     public Transform target; //posiiton of the target the spring should launch you towards.
+    public float inputDTime; //how long the spring should disable the players input.
 
     void Start()
     {
@@ -15,15 +16,5 @@ public class Spring : MonoBehaviour
             anim["floatSpringAnim"].speed = 1.8f;
             anim.Play();
         }
-        if(target)
-        {
-
-        }
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
     }
 }

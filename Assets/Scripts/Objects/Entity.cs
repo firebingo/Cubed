@@ -6,6 +6,7 @@ public class Entity : MonoBehaviour
     public GameController gameMaster; //reference to the gameController.
 
     public float moveSpeed; //the amount of force applied to 
+    public float defMoveSpeed; // the entity's default move speed.
     public float maxSpeed; //the max velocity of the entity.
     public float health; //the current health of the entity.
     protected float maxHealth; //the entity's max health.

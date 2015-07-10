@@ -35,6 +35,12 @@ public class GameController : MonoBehaviour
 
     public bool refreshQuality; //whether or not objects with quality settings whould refresh
 
+    //camera options
+    public float cameraSensitivity; //sensitivity of camera movement
+    public short cameraXInvert; //camera invert on the horizontal.
+    public short cameraYInvert; //camera invert on the vertical.
+
+
     // Unity Awake() method
     void Awake()
     {
@@ -77,6 +83,9 @@ public class GameController : MonoBehaviour
             vSync = false;
             Fullscreen = true;
             refreshQuality = true;
+            cameraSensitivity = 1;
+            cameraXInvert = 1;
+            cameraYInvert = 1;
         }
 
         saveOptions();
@@ -155,7 +164,7 @@ public class GameController : MonoBehaviour
         BinaryFormatter bf = new BinaryFormatter();
         FileStream file = File.Open(Application.dataPath + "/gameOptions.wort", FileMode.OpenOrCreate);
 
-        GameOptions options = new GameOptions(SMAAQuality, SSAOQuality, postProcessingQuality, reflectionQuality, reflectionUpdateFrequency, shadowQuality, vSync, Fullscreen, waterQuality, frameTarget);
+        GameOptions options = new GameOptions(SMAAQuality, SSAOQuality, postProcessingQuality, reflectionQuality, reflectionUpdateFrequency, shadowQuality, vSync, Fullscreen, waterQuality, frameTarget, cameraSensitivity, cameraXInvert, cameraYInvert);
 
         bf.Serialize(file, options);
         file.Close();
@@ -181,6 +190,9 @@ public class GameController : MonoBehaviour
             Fullscreen = options.Fullscreen;
             waterQuality = options.waterQuality;
             frameTarget = options.frameTarget;
+            cameraSensitivity = options.cameraSensitivity;
+            cameraXInvert = options.cameraXInvert;
+            cameraYInvert = options.cameraYInvert;
             return true;
         }
         else
@@ -199,7 +211,7 @@ public class GameController : MonoBehaviour
 [Serializable]
 class GameOptions
 {
-    public GameOptions(int iSMAAQuality, int iSSAOQuality, int iPostProcessingQuality, int iReflectionQuality, int iReflectionUpdateFrequency, int iShadowQuality, bool iVsync, bool iFullScreen, int iWaterQuality, int iFrameTarget)
+    public GameOptions(int iSMAAQuality, int iSSAOQuality, int iPostProcessingQuality, int iReflectionQuality, int iReflectionUpdateFrequency, int iShadowQuality, bool iVsync, bool iFullScreen, int iWaterQuality, int iFrameTarget, float iCameraSensitivity, short iCameraXInvert, short iCameraYInvert)
     {
         SMAAQuality = iSMAAQuality;
         SSAOQuality = iSSAOQuality;
@@ -211,6 +223,9 @@ class GameOptions
         vSync = iVsync;
         Fullscreen = iFullScreen;
         frameTarget = iFrameTarget;
+        cameraSensitivity = iCameraSensitivity;
+        cameraXInvert = iCameraXInvert;
+        cameraYInvert = iCameraYInvert;
     }
 
     //Options
@@ -224,4 +239,9 @@ class GameOptions
     public int frameTarget; //frame rate target, 0 = 30, 1 = 60, 2 = 75, 3 = 120, 4 = 144, 5 = 300
     public bool vSync; // false = off, true = on
     public bool Fullscreen; // true = fullscreen, false = windowed
+
+    //camera options
+    public float cameraSensitivity; //sensitivity of camera movement
+    public short cameraXInvert; //camera invert on the horizontal.
+    public short cameraYInvert; //camera invert on the vertical.
 }
