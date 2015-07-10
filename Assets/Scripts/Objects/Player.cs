@@ -15,6 +15,7 @@ public class Player : Entity
     public int jumpCount; //the amount of jumps the player can currently do.
     public int maxJumps; //the max amount of jumps the player can do.
     float jumpTimer; //timer used for preventing multi-jumping too quickly.
+    float defJumpForce; // the players default jump force
     bool canIceShield; //whether or not the player can use the ice shield.
     bool canFireShield; //whether or not the player can use the fire shield.
     bool canDash; //whether or not the player can dash
@@ -34,6 +35,7 @@ public class Player : Entity
     bool inLava; //whether or not the player is in lava.
     float gravityMul; //gravity multiplier
     Vector3 checkpointPos; //the position of the checkpoint the player will respawn at if they die.
+    float inputDTimer; // timer for disabling the player input temporairly. 
 
     //Unity Start() method
     void Start()
@@ -53,13 +55,16 @@ public class Player : Entity
         Defense = gameMaster.playerDefense;
         inWater = false;
         gravityMul = 1.0f;
+        inputDTimer = 0;
 
         isDashing = false;
         playerPhysics = GetComponent<Rigidbody>();
         //moveSpeed = 19.5f;
         //jumpForce = 6.1f;
-        moveSpeed = 12.0f;
-        jumpForce = 4.0f;
+        defMoveSpeed = 13.0f;
+        moveSpeed = defMoveSpeed;
+        defJumpForce = 4.1f;
+        jumpForce = defJumpForce;
         maxSpeed = 3.0f;
         jumpCount = maxJumps;
         gCamera = Camera.main;
@@ -69,6 +74,10 @@ public class Player : Entity
     //Unity Update() method
     void Update()
     {
+        if (inputDTimer > 0)
+        {
+            inputDTimer -= Time.deltaTime;
+        }
         if (invincTimer > 0)
         {
             invincTimer -= Time.deltaTime;
@@ -78,7 +87,7 @@ public class Player : Entity
         dashTimer += Time.deltaTime;
         //if the Jump button is pressed, the player has aviliable jumps, and isin't multi-jumping too quickly,
         // have the player jump, decrement the jump count, and reset the timers.
-        if (Input.GetButtonDown("A") && jumpCount > 0 && jumpTimer > 0.2f)
+        if (Input.GetButtonDown("A") && jumpCount > 0 && jumpTimer > 0.2f && inputDTimer < 0.1f)
         {
             playerPhysics.AddForce(new Vector3(0, 1, 0) * jumpForce * Time.fixedDeltaTime, ForceMode.Impulse);
             jumpCount--;
@@ -96,7 +105,7 @@ public class Player : Entity
             isDashing = false;
 
         //if the dash button is pressed and the player can currently dash, make the player dash.
-        if (Input.GetButtonDown("Y") && canDash && canDashTimer)
+        if (Input.GetButtonDown("Y") && canDash && canDashTimer && inputDTimer < 0.1f)
         {
             ParticleSystem part = transform.GetChild(2).GetComponent<ParticleSystem>();
             ParticleSystem partIce = transform.GetChild(3).GetComponent<ParticleSystem>();
@@ -144,7 +153,7 @@ public class Player : Entity
         //if the Ice Shield button is hit, the Fire Shield Button isin't and the player can use the Ice Shield,
         // set the Ice Shield to be active and disable the cube's hit box.
         //Otherwise, disable the Ice Shield and enable the cube's collider.
-        if (Input.GetButton("X") && !Input.GetButton("B") && canIceShield && iceShieldTime > 0)
+        if (Input.GetButton("X") && !Input.GetButton("B") && canIceShield && iceShieldTime > 0 && inputDTimer < 0.1f)
         {
             //if (Input.GetButtonDown("X") && jumpCount > 0)
             //    playerPhysics.AddForce(new Vector3(0, 1, 0) * jumpForce / 4 * Time.fixedDeltaTime, ForceMode.Impulse);
@@ -167,7 +176,7 @@ public class Player : Entity
         //if the Fire Shield button is hit, the Fire Shield Button isin't and the player can use the Fire Shield,
         // set the Fire Shield to be active and disable the cube's hit box.
         //Otherwise, disable the Fire Shield and enable the cube's collider.
-        if (Input.GetButton("B") && !Input.GetButton("X") && canFireShield && fireShieldTime > 0)
+        if (Input.GetButton("B") && !Input.GetButton("X") && canFireShield && fireShieldTime > 0 && inputDTimer < 0.1f)
         {
             //if (Input.GetButtonDown("B") && jumpCount > 0)
             //    playerPhysics.AddForce(new Vector3(0, 1, 0) * jumpForce / 4 * Time.fixedDeltaTime, ForceMode.Impulse);
@@ -206,12 +215,12 @@ public class Player : Entity
             inWater = false;
             inLava = false;
             gravityMul = 1.0f;
-            moveSpeed = 13.0f;
-            jumpForce = 4.0f;
+            moveSpeed = defMoveSpeed;
+            jumpForce = defJumpForce;
             gCamera.GetComponent<CameraMovement>().inWater = false;
             gCamera.GetComponent<CameraMovement>().waterCorrect.enabled = false;
             gCamera.GetComponent<CameraMovement>().lavaCorrect.enabled = false;
-            playerPhysics.velocity = new Vector3(0,0,0);
+            playerPhysics.velocity = new Vector3(0, 0, 0);
             iceShieldTime = maxIceShieldTime;
             fireShieldTime = maxFireShieldTime;
         }
@@ -229,12 +238,37 @@ public class Player : Entity
         //Gravity, be sure to disable the rigidbody's gravity so it just uses this.
         playerPhysics.AddForce(Physics.gravity * playerPhysics.mass * gravityMul);
 
-        //this is done in a if else statement because most of the time if the player stops moving the raycast that prevents the player from applying force
-        // passes and prevents movement unless the player jumps or activates a shield.
-        if (playerPhysics.velocity.magnitude > 0.02f)
+        if (inputDTimer < 0.1f)
         {
-            //if the player isin't too close to a environment object.
-            if (!Physics.Raycast(transform.position, playerPhysics.velocity, 0.25f, 1 << 8))
+            //this is done in a if else statement because most of the time if the player stops moving the raycast that prevents the player from applying force
+            // passes and prevents movement unless the player jumps or activates a shield.
+            if (playerPhysics.velocity.magnitude > 0.02f)
+            {
+                //if the player isin't too close to a environment object.
+                if (!Physics.Raycast(transform.position, playerPhysics.velocity, 0.25f, 1 << 8))
+                {
+                    //Forward and reverse movement controls.
+                    if (Input.GetAxis("Vertical") > 0 && playerPhysics.velocity.magnitude < maxSpeed)
+                    {
+                        playerPhysics.AddForceAtPosition(new Vector3(gCamera.transform.forward.x, 0, gCamera.transform.forward.z).normalized * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Vertical"), new Vector3(transform.position.x, transform.position.y + (0.35f * transform.localScale.y), transform.position.z - (0.5f * transform.localScale.z)), ForceMode.Force);
+                    }
+                    else if (Input.GetAxis("Vertical") < 0 && playerPhysics.velocity.magnitude < maxSpeed)
+                    {
+                        playerPhysics.AddForceAtPosition(new Vector3(gCamera.transform.forward.x, 0, gCamera.transform.forward.z).normalized * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Vertical"), new Vector3(transform.position.x, transform.position.y + (0.35f * transform.localScale.y), transform.position.z + (0.5f * transform.localScale.z)), ForceMode.Force);
+                    }
+
+                    //Sideways movement controls.
+                    if (Input.GetAxis("Horizontal") > 0 && playerPhysics.velocity.magnitude < maxSpeed)
+                    {
+                        playerPhysics.AddForceAtPosition(gCamera.transform.right * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Horizontal"), new Vector3(transform.position.x - (0.5f * transform.localScale.x), transform.position.y + (0.35f * transform.localScale.y), transform.position.z), ForceMode.Force);
+                    }
+                    else if (Input.GetAxis("Horizontal") < 0 && playerPhysics.velocity.magnitude < maxSpeed)
+                    {
+                        playerPhysics.AddForceAtPosition(gCamera.transform.right * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Horizontal"), new Vector3(transform.position.x + (0.5f * transform.localScale.x), transform.position.y + (0.35f * transform.localScale.y), transform.position.z), ForceMode.Force);
+                    }
+                }
+            }
+            else
             {
                 //Forward and reverse movement controls.
                 if (Input.GetAxis("Vertical") > 0 && playerPhysics.velocity.magnitude < maxSpeed)
@@ -257,28 +291,6 @@ public class Player : Entity
                 }
             }
         }
-        else
-        {
-            //Forward and reverse movement controls.
-            if (Input.GetAxis("Vertical") > 0 && playerPhysics.velocity.magnitude < maxSpeed)
-            {
-                playerPhysics.AddForceAtPosition(new Vector3(gCamera.transform.forward.x, 0, gCamera.transform.forward.z).normalized * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Vertical"), new Vector3(transform.position.x, transform.position.y + (0.35f * transform.localScale.y), transform.position.z - (0.5f * transform.localScale.z)), ForceMode.Force);
-            }
-            else if (Input.GetAxis("Vertical") < 0 && playerPhysics.velocity.magnitude < maxSpeed)
-            {
-                playerPhysics.AddForceAtPosition(new Vector3(gCamera.transform.forward.x, 0, gCamera.transform.forward.z).normalized * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Vertical"), new Vector3(transform.position.x, transform.position.y + (0.35f * transform.localScale.y), transform.position.z + (0.5f * transform.localScale.z)), ForceMode.Force);
-            }
-
-            //Sideways movement controls.
-            if (Input.GetAxis("Horizontal") > 0 && playerPhysics.velocity.magnitude < maxSpeed)
-            {
-                playerPhysics.AddForceAtPosition(gCamera.transform.right * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Horizontal"), new Vector3(transform.position.x - (0.5f * transform.localScale.x), transform.position.y + (0.35f * transform.localScale.y), transform.position.z), ForceMode.Force);
-            }
-            else if (Input.GetAxis("Horizontal") < 0 && playerPhysics.velocity.magnitude < maxSpeed)
-            {
-                playerPhysics.AddForceAtPosition(gCamera.transform.right * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Horizontal"), new Vector3(transform.position.x + (0.5f * transform.localScale.x), transform.position.y + (0.35f * transform.localScale.y), transform.position.z), ForceMode.Force);
-            }
-        }
     }
 
     void OnCollisionEnter(Collision iOther)
@@ -293,10 +305,9 @@ public class Player : Entity
         {
             if (invincTimer <= 0)
             {
-                float damage = 0.0f; //tracks the damage that needs to be done
+                float damage = 0.0f; //tracks the damage that needs to be done to the player
                 float enemyDamage = 0.0f; //tracks the damage that needs to be done to the enemy
                 Entity collisionObject = iOther.gameObject.GetComponent<Entity>();
-                //if the velocity is lower than 1 do the enemies base damage, otherwise reduce the damage based on the velocity.
                 //if the velocity is lower than 1 do reduced damage to the enemy based on the velocity, otherwise increase the damage.
                 if (playerPhysics.velocity.magnitude < 1.0f)
                 {
@@ -309,7 +320,7 @@ public class Player : Entity
                     //if the player is dashing increase the damage based on the velocity.
                     if (isDashing)
                     {
-                        damage = (collisionObject.baseDamage / 1.5f) / playerPhysics.velocity.magnitude;
+                        damage = (collisionObject.baseDamage * 0.66f);
                         if (playerPhysics.velocity.magnitude > 2)
                             enemyDamage = baseDamage * 2;
                         else
@@ -317,7 +328,7 @@ public class Player : Entity
                     }
                     else
                     {
-                        damage = collisionObject.baseDamage / playerPhysics.velocity.magnitude;
+                        damage = collisionObject.baseDamage;
                         enemyDamage = baseDamage;
                     }
                 }
@@ -370,16 +381,26 @@ public class Player : Entity
                 iOther.GetComponent<Checkpoint>().hasCheckpoint = true;
             }
         }
-        if(iOther.gameObject.tag == "Spring")
+        if (iOther.gameObject.tag == "Spring")
         {
             Spring springScript = iOther.transform.parent.GetComponent<Spring>();
+            inputDTimer = springScript.inputDTime;
             if (springScript.target)
             {
                 playerPhysics.velocity = new Vector3(0, 0, 0);
+                if (springScript.gameObject.tag == "floatSpring")
+                    this.transform.position = springScript.gameObject.transform.position + (springScript.gameObject.transform.up.normalized * 1.0f);
+                else
+                    this.transform.position = springScript.gameObject.transform.position + (springScript.gameObject.transform.forward.normalized * 0.85f);
                 playerPhysics.AddForce(((springScript.target.position + new Vector3(0, 15f, 0)) - iOther.transform.parent.position).normalized * springScript.springPower * Time.fixedDeltaTime, ForceMode.Impulse);
             }
             else
                 playerPhysics.AddForce(new Vector3(0, 1, 0) * springScript.springPower * Time.fixedDeltaTime, ForceMode.Impulse);
+        }
+        if (iOther.gameObject.tag == "Lava")
+        {
+            if (iOther == iOther.gameObject.GetComponent<RisingLava>().lavaStart)
+                iOther.gameObject.GetComponent<RisingLava>().isMoving = true;
         }
     }
 
@@ -391,16 +412,16 @@ public class Player : Entity
             {
                 inWater = false;
                 gravityMul = 1.0f;
-                moveSpeed = 13.0f;
-                jumpForce = 4.0f;
+                moveSpeed = defMoveSpeed;
+                jumpForce = defJumpForce;
 
             }
             else if (transform.position.y < iOther.transform.position.y)
             {
                 inWater = true;
                 gravityMul = 0.5f;
-                moveSpeed = 5.5f;
-                jumpForce = 2.9f;
+                moveSpeed = defMoveSpeed*0.5f;
+                jumpForce = defJumpForce * 0.71f;
             }
         }
         if (iOther.gameObject.tag == "Lava")
@@ -409,16 +430,16 @@ public class Player : Entity
             {
                 inLava = false;
                 gravityMul = 1.0f;
-                moveSpeed = 13.0f;
-                jumpForce = 4.0f;
+                moveSpeed = defMoveSpeed;
+                jumpForce = defJumpForce;
 
             }
             else if (transform.position.y < iOther.transform.position.y)
             {
                 inLava = true;
                 gravityMul = 0.5f;
-                moveSpeed = 4.5f;
-                jumpForce = 2.3f;
+                moveSpeed = defMoveSpeed * 0.4f;
+                jumpForce = defJumpForce * 0.61f;
             }
         }
     }
