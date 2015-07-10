@@ -10,15 +10,17 @@ public class GameBarController : MonoBehaviour
     float pastFireTime; //the last fire time
     float pastHP; //the last HP amount
     Vector3 baseBarPos; //the starting position of the bar
-    bool isCoroutine;
+    float barTimer; //timer for how long the bar is on the screen.
+    float barShowTime; //how long the bars should show on screen.
 
     void Start()
     {
-        isCoroutine = false;
         pastIceTime = 0.0f;
         pastFireTime = 0.0f;
         pastHP = 0.0f;
         uiImage = GetComponent<Image>();
+        barTimer = -1.0f;
+        barShowTime = 2.5f;
 
         baseBarPos = transform.parent.position;
     }
@@ -26,6 +28,14 @@ public class GameBarController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if(barTimer > 0)
+        {
+            barTimer -= Time.deltaTime;
+            transform.parent.position = baseBarPos;
+        }
+        else
+            transform.parent.position = baseBarPos + new Vector3(0.0f, 2000.0f, 0.0f);
+
         if (this.gameObject.name == "HpBar")
         {
             transform.localScale = new Vector3(GameController.gameMaster.gamePlayer.health / GameController.gameMaster.playerMaxHealth, 1.0f, 1.0f);
@@ -37,13 +47,9 @@ public class GameBarController : MonoBehaviour
             if (pastHP != GameController.gameMaster.gamePlayer.health)
             {
                 pastHP = GameController.gameMaster.gamePlayer.health;
-                transform.parent.position = baseBarPos;
+                barTimer = barShowTime;
             }
-            else
-                if (!isCoroutine)
-                StartCoroutine("returnBar");
         }
-
         if (this.gameObject.name == "IceBar")
         {
             transform.localScale = new Vector3(GameController.gameMaster.gamePlayer.iceShieldTime / GameController.gameMaster.playerMaxIceShieldTime, 1.0f, 1.0f);
@@ -52,11 +58,8 @@ public class GameBarController : MonoBehaviour
             if (pastIceTime != GameController.gameMaster.gamePlayer.iceShieldTime)
             {
                 pastIceTime = GameController.gameMaster.gamePlayer.iceShieldTime;
-                transform.parent.position = baseBarPos;
+                barTimer = barShowTime;
             }
-            else
-                if(!isCoroutine)
-                    StartCoroutine("returnBar");
         }
         if (this.gameObject.name == "FireBar")
         {
@@ -66,20 +69,13 @@ public class GameBarController : MonoBehaviour
             if (pastFireTime != GameController.gameMaster.gamePlayer.fireShieldTime)
             {
                 pastFireTime = GameController.gameMaster.gamePlayer.fireShieldTime;
-                transform.parent.position = baseBarPos;
+                barTimer = barShowTime;
             }
-            else
-                if (!isCoroutine)
-                StartCoroutine("returnBar");
         }
-    }
 
-    //makes the bars wait to go off screen after they aren't being changed anymore
-    IEnumerator returnBar()
-    {
-        isCoroutine = true;
-        yield return new WaitForSeconds(2.5f);
-        transform.parent.position = baseBarPos + new Vector3(0.0f, 2000.0f, 0.0f);
-        isCoroutine = false;
+        if(Input.GetButton("Select"))
+        {
+            barTimer = barShowTime;
+        }
     }
 }
