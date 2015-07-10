@@ -68,6 +68,12 @@ public class basicEnemy : Entity
 
         if (health < 0)
         {
+            //DEV NOTE: This is really not the proper way to do this.
+            //The way that would be better would be to just cache the particle system as a prefab, and instantiate
+            //it when the enemy dies and give it it's velocity then. This means that the particles dont need to be
+            //attached to the enemy while it's alive, technically wasting memory.
+            //Memory is not a real issue at the moment and I don't forsee it being an issue so it is fine this
+            //way for now.
             if (deathparts)
             {
                 deathparts.GetComponent<deathParts>().startDying();
