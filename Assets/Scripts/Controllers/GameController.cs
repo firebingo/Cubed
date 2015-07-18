@@ -40,6 +40,9 @@ public class GameController : MonoBehaviour
     public short cameraXInvert; //camera invert on the horizontal.
     public short cameraYInvert; //camera invert on the vertical.
 
+    public bool isPaused; //whether or not the game is paused.
+    public bool hasPaused;
+    public GameObject pauseMenu;
 
     // Unity Awake() method
     void Awake()
@@ -98,13 +101,43 @@ public class GameController : MonoBehaviour
         if(refreshQuality)
             setQuality();
 
-        if (Input.GetKeyDown(KeyCode.Escape))
-            loadScene(0);
+
+        if (isPaused)
+        {
+            if (!hasPaused)
+            {
+                hasPaused = true;
+                onPause();
+            }
+        }
+        else
+        {
+            if(hasPaused)
+            {
+                pauseMenu = GameObject.Find("pauseMenuParent");
+                hasPaused = false;
+                onUnPause();
+                pauseMenu = null;
+            }
+        }
+
+        //if (Input.GetKeyDown(KeyCode.Escape))
+        //    loadScene(0);
     }
 
     public void loadScene(int iIndex)
     {
         Application.LoadLevelAsync(iIndex);
+    }
+
+    void onPause()
+    {
+        Application.LoadLevelAdditive(1);
+    }
+
+    void onUnPause()
+    {
+        GameObject.Destroy(pauseMenu);
     }
 
     //set the quality settings important for this object

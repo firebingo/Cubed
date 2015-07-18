@@ -25,69 +25,88 @@ public class basicEnemy : Entity
     // Update is called once per frame
     void Update()
     {
-        distanceToPlayer = Vector3.Distance(transform.position, GameController.gameMaster.playerPosition);
-
-        if (distanceToPlayer < seekDistance)
-            enemyState = 1;
-        else if (waitStill)
-            enemyState = 2;
-        else
-            enemyState = 0;
-
-        switch (enemyState)
+        if (!GameController.gameMaster.isPaused)
         {
-            case 0:
-                //if the vector's x is greater than one, flip the bool so it starts decreasing
-                //if it's less than one, flip the bool so it starts increasing.
-                //same is then done for z
-                if (pushDirection.x > 1)
-                    xFlip = true;
-                else if (pushDirection.x < -1)
-                    xFlip = false;
-                if (xFlip)
-                    pushDirection.x -= patrolAngle * Time.deltaTime;
-                else if (!xFlip)
-                    pushDirection.x += patrolAngle * Time.deltaTime;
+            distanceToPlayer = Vector3.Distance(transform.position, GameController.gameMaster.playerPosition);
 
-                if (pushDirection.z > 1)
-                    zFlip = true;
-                else if (pushDirection.z < -1)
-                    zFlip = false;
-                if (zFlip)
-                    pushDirection.z -= patrolAngle * Time.deltaTime;
-                else if (!zFlip)
-                    pushDirection.z += patrolAngle * Time.deltaTime;
-                break;
-            case 1:
-                pushDirection = (GameController.gameMaster.playerPosition - transform.position).normalized;
-                break;
-            case 2:
-                pushDirection = new Vector3(0, 0, 0);
-                break;
-        }
+            if (distanceToPlayer < seekDistance)
+                enemyState = 1;
+            else if (waitStill)
+                enemyState = 2;
+            else
+                enemyState = 0;
 
-        if (health < 0)
-        {
-            //DEV NOTE: This is really not the proper way to do this.
-            //The way that would be better would be to just cache the particle system as a prefab, and instantiate
-            //it when the enemy dies and give it it's velocity then. This means that the particles dont need to be
-            //attached to the enemy while it's alive, technically wasting memory.
-            //Memory is not a real issue at the moment and I don't forsee it being an issue so it is fine this
-            //way for now.
-            if (deathparts)
+            switch (enemyState)
             {
-                deathparts.GetComponent<deathParts>().startDying();
-                deathparts.transform.parent = null;
-                deathparts.Play();
+                case 0:
+                    //if the vector's x is greater than one, flip the bool so it starts decreasing
+                    //if it's less than one, flip the bool so it starts increasing.
+                    //same is then done for z
+                    if (pushDirection.x > 1)
+                        xFlip = true;
+                    else if (pushDirection.x < -1)
+                        xFlip = false;
+                    if (xFlip)
+                        pushDirection.x -= patrolAngle * Time.deltaTime;
+                    else if (!xFlip)
+                        pushDirection.x += patrolAngle * Time.deltaTime;
+
+                    if (pushDirection.z > 1)
+                        zFlip = true;
+                    else if (pushDirection.z < -1)
+                        zFlip = false;
+                    if (zFlip)
+                        pushDirection.z -= patrolAngle * Time.deltaTime;
+                    else if (!zFlip)
+                        pushDirection.z += patrolAngle * Time.deltaTime;
+                    break;
+                case 1:
+                    pushDirection = (GameController.gameMaster.playerPosition - transform.position).normalized;
+                    break;
+                case 2:
+                    pushDirection = new Vector3(0, 0, 0);
+                    break;
             }
-            DestroyObject(this.gameObject);
+
+            if (health < 0)
+            {
+                //DEV NOTE: This is really not the proper way to do this.
+                //The way that would be better would be to just cache the particle system as a prefab, and instantiate
+                //it when the enemy dies and give it it's velocity then. This means that the particles dont need to be
+                //attached to the enemy while it's alive, technically wasting memory.
+                //Memory is not a real issue at the moment and I don't forsee it being an issue so it is fine this
+                //way for now.
+                if (deathparts)
+                {
+                    deathparts.GetComponent<deathParts>().startDying();
+                    deathparts.transform.parent = null;
+                    deathparts.Play();
+                }
+                DestroyObject(this.gameObject);
+            }
         }
     }
 
     //Unity FixedUpdate() method.
     void FixedUpdate()
     {
-        entityPhysics.AddForceAtPosition(pushDirection.normalized * moveSpeed * Time.fixedDeltaTime, new Vector3(transform.position.x, transform.position.y + (0.35f * transform.localScale.y), transform.position.z - (0.5f * transform.localScale.z)), ForceMode.Force);
+        if (!GameController.gameMaster.isPaused)
+        {
+            if (hasPaused)
+            {
+                onUnpause();
+                hasPaused = false;
+            }
+            entityPhysics.AddForceAtPosition(pushDirection.normalized * moveSpeed * Time.fixedDeltaTime, new Vector3(transform.position.x, transform.position.y + (0.35f * transform.localScale.y), transform.position.z - (0.5f * transform.localScale.z)), ForceMode.Force);
+        }
+        else
+        {
+            if (!hasPaused)
+            {
+                onPause();
+                hasPaused = true;
+            }
+        }
     }
 
     void OnCollisionEnter(Collision iOther)
