@@ -12,4 +12,25 @@ public class Entity : MonoBehaviour
     protected float maxHealth; //the entity's max health.
     public float baseDamage; //the base damage the entity does
     public float damagePushBack; //the force that the entity is pushed back by when damage is dealt.
+    protected Vector3 pastVelocity; //the past velocity of the object, used for pausing.
+    protected bool hasPaused;
+
+    protected void onPause()
+    {
+        if(GetComponent<Rigidbody>())
+        {
+            pastVelocity = GetComponent<Rigidbody>().velocity;
+            GetComponent<Rigidbody>().isKinematic = true;
+            GetComponent<Rigidbody>().detectCollisions = false;
+        }
+    }
+    protected void onUnpause()
+    {
+        if (GetComponent<Rigidbody>())
+        {
+            GetComponent<Rigidbody>().isKinematic = false;
+            GetComponent<Rigidbody>().detectCollisions = true;
+            GetComponent<Rigidbody>().velocity = pastVelocity;
+        }
+    }
 }

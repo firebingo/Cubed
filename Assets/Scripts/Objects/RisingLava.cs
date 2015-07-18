@@ -10,9 +10,12 @@ public class RisingLava : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(isMoving)
+        if (!GameController.gameMaster.isPaused)
         {
-            transform.position += new Vector3(0, moveSpeed * Time.deltaTime, 0);
+            if (isMoving)
+            {
+                transform.position += new Vector3(0, moveSpeed * Time.deltaTime, 0);
+            }
         }
     }
 }
