@@ -159,11 +159,10 @@ public class Player : Entity
             //Otherwise, disable the Ice Shield and enable the cube's collider.
             if (Input.GetButton("X") && !Input.GetButton("B") && canIceShield && iceShieldTime > 0 && inputDTimer < 0.1f)
             {
-                //if (Input.GetButtonDown("X") && jumpCount > 0)
-                //    playerPhysics.AddForce(new Vector3(0, 1, 0) * jumpForce / 4 * Time.fixedDeltaTime, ForceMode.Impulse);
                 iceShieldTime -= Time.deltaTime;
                 if (!transform.GetChild(0).gameObject.activeSelf)
                 {
+                    playerPhysics.AddForce(new Vector3(0, 1, 0) * 1.0f * Time.fixedDeltaTime, ForceMode.Impulse);
                     transform.GetChild(0).gameObject.SetActive(true);
                     GetComponent<BoxCollider>().enabled = false;
                 }
@@ -182,11 +181,10 @@ public class Player : Entity
             //Otherwise, disable the Fire Shield and enable the cube's collider.
             if (Input.GetButton("B") && !Input.GetButton("X") && canFireShield && fireShieldTime > 0 && inputDTimer < 0.1f)
             {
-                //if (Input.GetButtonDown("B") && jumpCount > 0)
-                //    playerPhysics.AddForce(new Vector3(0, 1, 0) * jumpForce / 4 * Time.fixedDeltaTime, ForceMode.Impulse);
                 fireShieldTime -= Time.deltaTime;
                 if (!transform.GetChild(1).gameObject.activeSelf)
                 {
+                    playerPhysics.AddForce(new Vector3(0, 1, 0) * 1.0f * Time.fixedDeltaTime, ForceMode.Impulse);
                     transform.GetChild(1).gameObject.SetActive(true);
                     GetComponent<BoxCollider>().enabled = false;
                 }
