@@ -162,7 +162,7 @@ public class Player : Entity
                 iceShieldTime -= Time.deltaTime;
                 if (!transform.GetChild(0).gameObject.activeSelf)
                 {
-                    playerPhysics.AddForce(new Vector3(0, 1, 0) * 1.0f * Time.fixedDeltaTime, ForceMode.Impulse);
+                    //playerPhysics.AddForce(new Vector3(0, 1, 0) * 1.0f * Time.fixedDeltaTime, ForceMode.Impulse);
                     transform.GetChild(0).gameObject.SetActive(true);
                     GetComponent<BoxCollider>().enabled = false;
                 }
@@ -184,7 +184,7 @@ public class Player : Entity
                 fireShieldTime -= Time.deltaTime;
                 if (!transform.GetChild(1).gameObject.activeSelf)
                 {
-                    playerPhysics.AddForce(new Vector3(0, 1, 0) * 1.0f * Time.fixedDeltaTime, ForceMode.Impulse);
+                    //playerPhysics.AddForce(new Vector3(0, 1, 0) * 1.0f * Time.fixedDeltaTime, ForceMode.Impulse);
                     transform.GetChild(1).gameObject.SetActive(true);
                     GetComponent<BoxCollider>().enabled = false;
                 }
