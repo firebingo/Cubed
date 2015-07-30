@@ -16,7 +16,9 @@ public class Spring : MonoBehaviour
         //this is here so the prefab can just be placed down and no change to the multiplier has to be made unless needed.
         if(powerMultiplier == 0) 
             powerMultiplier = 1;
-
+	
+	//help on this matter from:
+	//https://www.physicsforums.com/threads/projectile-range-equation-in-3d-space.325772/
         if (target)
         {
             Vector3 direction = target.position - transform.position; //direction vector
