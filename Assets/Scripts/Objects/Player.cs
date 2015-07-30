@@ -419,10 +419,11 @@ public class Player : Entity
                     this.transform.position = springScript.gameObject.transform.position + (springScript.gameObject.transform.up.normalized * 1.0f);
                 else
                     this.transform.position = springScript.gameObject.transform.position + (springScript.gameObject.transform.forward.normalized * 0.85f);
-                playerPhysics.AddForce(((springScript.target.position + new Vector3(0, 15f, 0)) - iOther.transform.parent.position).normalized * springScript.springPower * Time.fixedDeltaTime, ForceMode.Impulse);
+
+                playerPhysics.AddForce(springScript.springPower * Time.fixedDeltaTime, ForceMode.Impulse);
             }
             else
-                playerPhysics.AddForce(new Vector3(0, 1, 0) * springScript.springPower * Time.fixedDeltaTime, ForceMode.Impulse);
+                playerPhysics.AddForce(springScript.springPower * Time.fixedDeltaTime, ForceMode.Impulse);
         }
         if (iOther.gameObject.tag == "Lava")
         {
