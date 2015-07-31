@@ -30,6 +30,7 @@ public class GrassController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //only do the lod checking if the grass is actually being rendered.
         if (thisRender.isVisible)
         {
             if (GameController.gameMaster.grassQuality == 0)
