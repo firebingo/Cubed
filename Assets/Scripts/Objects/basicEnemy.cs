@@ -80,6 +80,7 @@ public class basicEnemy : Entity
                 {
                     deathparts.GetComponent<deathParts>().startDying();
                     deathparts.transform.parent = null;
+                    deathparts.gameObject.GetComponent<Renderer>().material.color = GetComponent<Renderer>().material.color;
                     deathparts.Play();
                 }
                 DestroyObject(this.gameObject);

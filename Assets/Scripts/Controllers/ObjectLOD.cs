@@ -45,19 +45,19 @@ public class ObjectLOD : MonoBehaviour
         if (thisRender.isVisible)
         {
             disFromCam = (mainCamera.transform.position - transform.position).magnitude;
-            if (LOD3 && disFromCam > 100 * LODScale)
+            if (LOD3 && disFromCam > 90 * LODScale)
             {
                 thisMesh.mesh = LOD3;
                 if (changeMaterial.Length > 0)
                     thisRender.materials = changeMaterial;
             }
-            else if (LOD2 && disFromCam > 70 * LODScale)
+            else if (LOD2 && disFromCam > 60 * LODScale)
             {
                 thisMesh.mesh = LOD2;
                 if (changeMaterial.Length > 0)
                     thisRender.materials = changeMaterial;
             }
-            else if (LOD1 && disFromCam > 35 * LODScale)
+            else if (LOD1 && disFromCam > 30 * LODScale)
             {
                 thisMesh.mesh = LOD1;
                 if (changeMaterial.Length > 0)

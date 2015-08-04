@@ -45,7 +45,7 @@ public class Spring : MonoBehaviour
         if (transform.tag == "floatSpring")
         {
             anim = GetComponent<Animation>();
-            anim["floatSpringAnim"].speed = 1.8f;
+            anim["floatSpringAnim"].speed = -1.8f;
             anim.Play();
         }
     }

@@ -220,9 +220,15 @@ public class Player : Entity
                 moveSpeed = defMoveSpeed;
                 jumpForce = defJumpForce;
                 gCamera.GetComponent<CameraMovement>().inWater = false;
-                gCamera.GetComponent<CameraMovement>().waterCorrect.enabled = false;
-                gCamera.GetComponent<CameraMovement>().lavaCorrect.enabled = false;
-                playerPhysics.velocity = new Vector3(0, 0, 0);
+
+                if (gCamera.GetComponent<CameraMovement>().waterCorrect)
+                    gCamera.GetComponent<CameraMovement>().waterCorrect.enabled = false;
+                if (gCamera.GetComponent<CameraMovement>().lavaCorrect)
+                    gCamera.GetComponent<CameraMovement>().lavaCorrect.enabled = false;
+                if (gCamera.GetComponent<CameraMovement>().waterFog)
+                    gCamera.GetComponent<CameraMovement>().waterFog.enabled = false;
+
+                playerPhysics.velocity = Vector3.zero;
                 iceShieldTime = maxIceShieldTime;
                 fireShieldTime = maxFireShieldTime;
             }
@@ -376,6 +382,13 @@ public class Player : Entity
             }
             playerPhysics.AddForce(((iOther.contacts[0].normal).normalized + new Vector3(0, 0.25f, 0)) * Time.fixedDeltaTime * damagePushBack, ForceMode.Impulse);
         }
+
+        //if the player hits a kill plane kill them.
+        if(iOther.gameObject.tag == "killPlane")
+        {
+            //is less than zero because health check for death only checks for less than 0.
+            health = -1;
+        }
     }
 
     //Unity OnCollisionStay() Method
@@ -429,6 +442,10 @@ public class Player : Entity
         {
             if (iOther == iOther.gameObject.GetComponent<RisingLava>().lavaStart)
                 iOther.gameObject.GetComponent<RisingLava>().isMoving = true;
+        }
+        if(iOther.gameObject.tag == "grassLoader")
+        {
+            iOther.GetComponent<GrassLoader>().loadFunction();
         }
     }
 

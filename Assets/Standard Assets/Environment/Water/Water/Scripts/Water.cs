@@ -109,6 +109,8 @@ namespace UnityStandardAssets.Water
                 reflectionCamera.transform.position = oldpos;
                 GL.invertCulling = false;
                 GetComponent<Renderer>().sharedMaterial.SetTexture("_ReflectionTex", m_ReflectionTexture);
+                //refractionCamera.useOcclusionCulling = false;
+                //reflectionCamera.useOcclusionCulling = false;
             }
 
             // Render refraction

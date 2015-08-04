@@ -12,6 +12,7 @@ public class CameraMovement : MonoBehaviour
     public bool inWater; //whether or not the camera is in water.
     public ColorCorrectionLookup waterCorrect; //reference to the color correction for the water.
     public ColorCorrectionLookup lavaCorrect;
+    public GlobalFog waterFog;
 
     // Unity Start() method
     void Start()
@@ -19,12 +20,14 @@ public class CameraMovement : MonoBehaviour
         targetPosition = new Vector3(0.0f, 1.5f, -1.5f);
         transform.localPosition = targetPosition;
         gameMaster = GameController.gameMaster;
-        cameraSpeed = 2.3f;
+        cameraSpeed = 4.0f;
         inWater = false;
         if (waterCorrect)
             waterCorrect.enabled = false;
         if (lavaCorrect)
             lavaCorrect.enabled = false;
+        if (waterFog)
+            waterFog.enabled = false;
         setQuality();
     }
 
@@ -41,11 +44,11 @@ public class CameraMovement : MonoBehaviour
                 //Horizontal camera movement
                 if (Input.GetAxis("CameraHorizontal") > 0)
                 {
-                    targetPosition += (transform.right.normalized * -Input.GetAxis("CameraHorizontal") * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraXInvert;
+                    targetPosition += ((transform.right - transform.forward).normalized * -Input.GetAxis("CameraHorizontal") * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraXInvert;
                 }
                 else if (Input.GetAxis("CameraHorizontal") < 0)
                 {
-                    targetPosition += (transform.right.normalized * -Input.GetAxis("CameraHorizontal") * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraXInvert;
+                    targetPosition += ((transform.right + transform.forward).normalized * -Input.GetAxis("CameraHorizontal") * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraXInvert;
                 }
 
                 //Vertical camera movement
@@ -142,16 +145,19 @@ public class CameraMovement : MonoBehaviour
             {
                 GetComponent<ScreenSpaceAmbientOcclusion>().gameObject.SetActive(true);
                 GetComponent<ScreenSpaceAmbientOcclusion>().enabled = true;
+                GetComponent<ScreenSpaceAmbientOcclusion>().m_SampleCount = ScreenSpaceAmbientOcclusion.SSAOSamples.Low;
             }
             else if (gameMaster.SSAOQuality == 2)
             {
                 GetComponent<ScreenSpaceAmbientOcclusion>().gameObject.SetActive(true);
                 GetComponent<ScreenSpaceAmbientOcclusion>().enabled = true;
+                GetComponent<ScreenSpaceAmbientOcclusion>().m_SampleCount = ScreenSpaceAmbientOcclusion.SSAOSamples.Medium;
             }
             else if (gameMaster.SSAOQuality == 3)
             {
                 GetComponent<ScreenSpaceAmbientOcclusion>().gameObject.SetActive(true);
                 GetComponent<ScreenSpaceAmbientOcclusion>().enabled = true;
+                GetComponent<ScreenSpaceAmbientOcclusion>().m_SampleCount = ScreenSpaceAmbientOcclusion.SSAOSamples.High;
             }
         }
 
@@ -184,11 +190,15 @@ public class CameraMovement : MonoBehaviour
             {
                 inWater = false;
                 waterCorrect.enabled = false;
+                if (waterFog)
+                    waterFog.enabled = false;
             }
             else if (transform.position.y < iOther.transform.position.y)
             {
                 inWater = true;
                 waterCorrect.enabled = true;
+                if (waterFog)
+                    waterFog.enabled = true;
             }
         }
         if (iOther.gameObject.tag == "Lava")
@@ -197,11 +207,15 @@ public class CameraMovement : MonoBehaviour
             {
                 inWater = false;
                 lavaCorrect.enabled = false;
+                if (waterFog)
+                    waterFog.enabled = false;
             }
             else if (transform.position.y < iOther.transform.position.y)
             {
                 inWater = true;
                 lavaCorrect.enabled = true;
+                if (waterFog)
+                    waterFog.enabled = true;
             }
         }
     }

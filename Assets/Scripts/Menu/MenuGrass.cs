@@ -27,7 +27,7 @@ public class MenuGrass : MonoBehaviour
         if (GameController.gameMaster.grassQuality == 4)
             transform.GetChild(3).GetComponent<Text>().text = "Grass Quality: High";
         if (GameController.gameMaster.grassQuality == 5)
-            transform.GetChild(3).GetComponent<Text>().text = "Grass Quality: Ultra (Good Luck)";
+            transform.GetChild(3).GetComponent<Text>().text = "Grass Quality: Ultra";
     }
 
     //update the value of the Grass Quality in the gameMaster

@@ -58,15 +58,15 @@ public class GameController : MonoBehaviour
             Destroy(this.gameObject);
         }
 
-        playerMaxJumpCount = 2;
+        playerMaxJumpCount = 1;
         playerMaxFireShieldTime = 20;
         playerMaxIceShieldTime = 20;
         playerMaxHealth = 100;
         playerDefense = 1.0f;
-        playerCanAirDash = true;
-        playerCanDash = true;
-        playerCanUseFireShield = true;
-        playerCanUseIceShield = true;
+        playerCanAirDash = false;
+        playerCanDash = false;
+        playerCanUseFireShield = false;
+        playerCanUseIceShield = false;
     }
 
     // Unity Start() method
