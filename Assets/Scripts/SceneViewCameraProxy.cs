@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Linq;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 
 [ExecuteInEditMode]
 public class SceneViewCameraProxy : MonoBehaviour
 {
-//#if UNITY_EDITOR
+#if UNITY_EDITOR
     public SceneView SceneView;
     public Camera Camera;
  
@@ -73,5 +75,5 @@ public class SceneViewCameraProxy : MonoBehaviour
             }
         }
     }
-//#endif
+#endif
 }
