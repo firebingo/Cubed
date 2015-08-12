@@ -28,7 +28,7 @@ public class Spring : MonoBehaviour
             direction.y = 0; //remove vertical component from direction to make it just horizontal
 
             float vertChange = maxHeight + height; //the y coordinate to hit in the arc.
-            if(vertChange < 0) //if the target is below the spring vertchange will be negative so clamp it to 0.
+            if (vertChange < 0) //if the target is below the spring vertchange will be negative so clamp it to 0.
                 vertChange = 0;
             float vertDelta = vertChange - height; //the change in y for the arc.
 
@@ -40,8 +40,11 @@ public class Spring : MonoBehaviour
 
             springPower = new Vector3(direction.normalized.x * xVel, yVel, direction.normalized.z * xVel) * powerMultiplier; //the final power to apply.
         }
+        //if the spring doesnt have a target just launch it forward.
+        else
+            springPower = transform.forward.normalized * 5.0f;
 
-        //if the spring is  afloating spring play it's animation.
+        //if the spring is a floating spring play it's animation.
         if (transform.tag == "floatSpring")
         {
             anim = GetComponent<Animation>();

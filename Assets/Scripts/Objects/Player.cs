@@ -15,6 +15,7 @@ public class Player : Entity
     public int jumpCount; //the amount of jumps the player can currently do.
     public int maxJumps; //the max amount of jumps the player can do.
     float jumpTimer; //timer used for preventing multi-jumping too quickly.
+    bool isGrounded; //whether or not the player is on the ground
     float defJumpForce; // the players default jump force
     bool canIceShield; //whether or not the player can use the ice shield.
     bool canFireShield; //whether or not the player can use the fire shield.
@@ -56,7 +57,7 @@ public class Player : Entity
         inWater = false;
         gravityMul = 1.0f;
         inputDTimer = 0;
-
+        isGrounded = true;
         isDashing = false;
         playerPhysics = GetComponent<Rigidbody>();
         //moveSpeed = 19.5f;
@@ -79,13 +80,11 @@ public class Player : Entity
         if (!gameMaster.isPaused)
         {
             if (inputDTimer > 0)
-            {
                 inputDTimer -= Time.deltaTime;
-            }
+
             if (invincTimer > 0)
-            {
                 invincTimer -= Time.deltaTime;
-            }
+
             gameMaster.playerPosition = transform.position;
             jumpTimer += Time.deltaTime;
             dashTimer += Time.deltaTime;
@@ -97,6 +96,7 @@ public class Player : Entity
                 jumpCount--;
                 jumpTimer = 0;
                 collisionTimer = 0;
+                isGrounded = false;
             }
 
             //if the dash timer is over the cooldown time, reset it and allow to dash
@@ -240,9 +240,10 @@ public class Player : Entity
             }
         }
 
-        if(Input.GetButtonDown("Start"))
+        //if the start button has been pressed, pause the game
+        if (Input.GetButtonDown("Start"))
         {
-            if( gameMaster.isPaused == true)
+            if (gameMaster.isPaused == true)
                 gameMaster.isPaused = false;
             else if (gameMaster.isPaused == false)
                 gameMaster.isPaused = true;
@@ -252,8 +253,10 @@ public class Player : Entity
     //Unity FixedUpdate() method.
     void FixedUpdate()
     {
+        //if the game isint paused
         if (!gameMaster.isPaused)
         {
+            //if the game has unpaused since last check call the onUnpause() function and change hasPaused to false
             if (hasPaused)
             {
                 onUnpause();
@@ -264,60 +267,30 @@ public class Player : Entity
 
             if (inputDTimer < 0.1f)
             {
-                //this is done in a if else statement because most of the time if the player stops moving the raycast that prevents the player from applying force
-                // passes and prevents movement unless the player jumps or activates a shield.
-                if (playerPhysics.velocity.magnitude > 0.02f)
+                //Forward and reverse movement controls.
+                if (Input.GetAxis("Vertical") > 0 && playerPhysics.velocity.magnitude < maxSpeed)
                 {
-                    //if the player isin't too close to a environment object.
-                    if (!Physics.Raycast(transform.position, playerPhysics.velocity, 0.25f, 1 << 8))
-                    {
-                        //Forward and reverse movement controls.
-                        if (Input.GetAxis("Vertical") > 0 && playerPhysics.velocity.magnitude < maxSpeed)
-                        {
-                            playerPhysics.AddForceAtPosition(new Vector3(gCamera.transform.forward.x, 0, gCamera.transform.forward.z).normalized * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Vertical"), new Vector3(transform.position.x, transform.position.y + (0.35f * transform.localScale.y), transform.position.z - (0.5f * transform.localScale.z)), ForceMode.Force);
-                        }
-                        else if (Input.GetAxis("Vertical") < 0 && playerPhysics.velocity.magnitude < maxSpeed)
-                        {
-                            playerPhysics.AddForceAtPosition(new Vector3(gCamera.transform.forward.x, 0, gCamera.transform.forward.z).normalized * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Vertical"), new Vector3(transform.position.x, transform.position.y + (0.35f * transform.localScale.y), transform.position.z + (0.5f * transform.localScale.z)), ForceMode.Force);
-                        }
-
-                        //Sideways movement controls.
-                        if (Input.GetAxis("Horizontal") > 0 && playerPhysics.velocity.magnitude < maxSpeed)
-                        {
-                            playerPhysics.AddForceAtPosition(gCamera.transform.right * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Horizontal"), new Vector3(transform.position.x - (0.5f * transform.localScale.x), transform.position.y + (0.35f * transform.localScale.y), transform.position.z), ForceMode.Force);
-                        }
-                        else if (Input.GetAxis("Horizontal") < 0 && playerPhysics.velocity.magnitude < maxSpeed)
-                        {
-                            playerPhysics.AddForceAtPosition(gCamera.transform.right * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Horizontal"), new Vector3(transform.position.x + (0.5f * transform.localScale.x), transform.position.y + (0.35f * transform.localScale.y), transform.position.z), ForceMode.Force);
-                        }
-                    }
+                    playerPhysics.AddForceAtPosition(new Vector3(gCamera.transform.forward.x, 0, gCamera.transform.forward.z).normalized * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Vertical"), new Vector3(transform.position.x, transform.position.y + (0.35f * transform.localScale.y), transform.position.z - (0.5f * transform.localScale.z)), ForceMode.Force);
                 }
-                else
+                else if (Input.GetAxis("Vertical") < 0 && playerPhysics.velocity.magnitude < maxSpeed)
                 {
-                    //Forward and reverse movement controls.
-                    if (Input.GetAxis("Vertical") > 0 && playerPhysics.velocity.magnitude < maxSpeed)
-                    {
-                        playerPhysics.AddForceAtPosition(new Vector3(gCamera.transform.forward.x, 0, gCamera.transform.forward.z).normalized * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Vertical"), new Vector3(transform.position.x, transform.position.y + (0.35f * transform.localScale.y), transform.position.z - (0.5f * transform.localScale.z)), ForceMode.Force);
-                    }
-                    else if (Input.GetAxis("Vertical") < 0 && playerPhysics.velocity.magnitude < maxSpeed)
-                    {
-                        playerPhysics.AddForceAtPosition(new Vector3(gCamera.transform.forward.x, 0, gCamera.transform.forward.z).normalized * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Vertical"), new Vector3(transform.position.x, transform.position.y + (0.35f * transform.localScale.y), transform.position.z + (0.5f * transform.localScale.z)), ForceMode.Force);
-                    }
+                    playerPhysics.AddForceAtPosition(new Vector3(gCamera.transform.forward.x, 0, gCamera.transform.forward.z).normalized * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Vertical"), new Vector3(transform.position.x, transform.position.y + (0.35f * transform.localScale.y), transform.position.z + (0.5f * transform.localScale.z)), ForceMode.Force);
+                }
 
-                    //Sideways movement controls.
-                    if (Input.GetAxis("Horizontal") > 0 && playerPhysics.velocity.magnitude < maxSpeed)
-                    {
-                        playerPhysics.AddForceAtPosition(gCamera.transform.right * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Horizontal"), new Vector3(transform.position.x - (0.5f * transform.localScale.x), transform.position.y + (0.35f * transform.localScale.y), transform.position.z), ForceMode.Force);
-                    }
-                    else if (Input.GetAxis("Horizontal") < 0 && playerPhysics.velocity.magnitude < maxSpeed)
-                    {
-                        playerPhysics.AddForceAtPosition(gCamera.transform.right * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Horizontal"), new Vector3(transform.position.x + (0.5f * transform.localScale.x), transform.position.y + (0.35f * transform.localScale.y), transform.position.z), ForceMode.Force);
-                    }
+                //Sideways movement controls.
+                if (Input.GetAxis("Horizontal") > 0 && playerPhysics.velocity.magnitude < maxSpeed)
+                {
+                    playerPhysics.AddForceAtPosition(gCamera.transform.right * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Horizontal"), new Vector3(transform.position.x - (0.5f * transform.localScale.x), transform.position.y + (0.35f * transform.localScale.y), transform.position.z), ForceMode.Force);
+                }
+                else if (Input.GetAxis("Horizontal") < 0 && playerPhysics.velocity.magnitude < maxSpeed)
+                {
+                    playerPhysics.AddForceAtPosition(gCamera.transform.right * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Horizontal"), new Vector3(transform.position.x + (0.5f * transform.localScale.x), transform.position.y + (0.35f * transform.localScale.y), transform.position.z), ForceMode.Force);
                 }
             }
         }
         else
         {
+            //if the game has paused since the last check call the onPause() function and change hasPaused to true
             if (!hasPaused)
             {
                 onPause();
@@ -384,7 +357,7 @@ public class Player : Entity
         }
 
         //if the player hits a kill plane kill them.
-        if(iOther.gameObject.tag == "killPlane")
+        if (iOther.gameObject.tag == "killPlane")
         {
             //is less than zero because health check for death only checks for less than 0.
             health = -1;
@@ -407,12 +380,20 @@ public class Player : Entity
             if (Physics.Raycast(ray, 0.2f, 1 << 8))
             {
                 jumpCount = maxJumps;
+                isGrounded = true;
             }
         }
+        //if the player hits a environemnt object and isin't grounded shortly disable input.
+        //this is to prevent wall sticking and theoretically shouldnt cause other problems.
+        if (iOther.gameObject.layer == 8 && !isGrounded)
+            inputDTimer += 0.01f;
     }
 
+    //Unity OnTriggerEnter function.
     void OnTriggerEnter(Collider iOther)
     {
+        //if the player hits a checkpoint that hasn't been used set the checkpointPos to the new checkpoint
+        // and tell the new checkpoint it's been used.
         if (iOther.gameObject.tag == "Checkpoint")
         {
             if (iOther.GetComponent<Checkpoint>().hasCheckpoint == false)
@@ -421,38 +402,48 @@ public class Player : Entity
                 iOther.GetComponent<Checkpoint>().hasCheckpoint = true;
             }
         }
+        //if the player hits a spring, disable the player's input for the springs set time.
         if (iOther.gameObject.tag == "Spring")
         {
             Spring springScript = iOther.transform.parent.GetComponent<Spring>();
             inputDTimer = springScript.inputDTime;
+            //if the spring has a target
             if (springScript.target)
             {
+                //Set the player's velocity to zero and place it above the spring's position, this should prevent errors in where the player lands.
                 playerPhysics.velocity = new Vector3(0, 0, 0);
                 if (springScript.gameObject.tag == "floatSpring")
                     this.transform.position = springScript.gameObject.transform.position + (springScript.gameObject.transform.up.normalized * 1.0f);
                 else
                     this.transform.position = springScript.gameObject.transform.position + (springScript.gameObject.transform.forward.normalized * 0.85f);
 
-                playerPhysics.AddForce(springScript.springPower * Time.fixedDeltaTime, ForceMode.Impulse);
+                //set the player's velocity to the spring's power.
+                playerPhysics.velocity = springScript.springPower;
             }
+            //if the spring doesn't have a target just launch the player up.
             else
-                playerPhysics.AddForce(springScript.springPower * Time.fixedDeltaTime, ForceMode.Impulse);
+                playerPhysics.velocity = springScript.springPower;
         }
+        //if the player hits a rising lava trigger.
         if (iOther.gameObject.tag == "Lava")
         {
             if (iOther == iOther.gameObject.GetComponent<RisingLava>().lavaStart)
                 iOther.gameObject.GetComponent<RisingLava>().isMoving = true;
         }
-        if(iOther.gameObject.tag == "grassLoader")
+        //if the player hits a grass loader.
+        if (iOther.gameObject.tag == "grassLoader")
         {
             iOther.GetComponent<GrassLoader>().loadFunction();
         }
     }
 
+    //Unity OnTriggerExit function.
     void OnTriggerExit(Collider iOther)
     {
+        
         if (iOther.gameObject.tag == "Water")
         {
+            //if the player passes a water plane and is above it change it's physics to accomodate
             if (transform.position.y > iOther.transform.position.y)
             {
                 inWater = false;
@@ -461,16 +452,18 @@ public class Player : Entity
                 jumpForce = defJumpForce;
 
             }
+            //if the player passes a water plane and is under it change it's physics to accomodate
             else if (transform.position.y < iOther.transform.position.y)
             {
                 inWater = true;
                 gravityMul = 0.5f;
-                moveSpeed = defMoveSpeed*0.5f;
+                moveSpeed = defMoveSpeed * 0.5f;
                 jumpForce = defJumpForce * 0.71f;
             }
         }
         if (iOther.gameObject.tag == "Lava")
         {
+            //if the player passes a lava plane and is above it change it's physics to accomodate
             if (transform.position.y > iOther.transform.position.y)
             {
                 inLava = false;
@@ -479,6 +472,7 @@ public class Player : Entity
                 jumpForce = defJumpForce;
 
             }
+            //if the player passes a lava plane and is under it change it's physics to accomodate
             else if (transform.position.y < iOther.transform.position.y)
             {
                 inLava = true;

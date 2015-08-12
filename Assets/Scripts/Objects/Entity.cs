@@ -13,8 +13,9 @@ public class Entity : MonoBehaviour
     public float baseDamage; //the base damage the entity does
     public float damagePushBack; //the force that the entity is pushed back by when damage is dealt.
     protected Vector3 pastVelocity; //the past velocity of the object, used for pausing.
-    protected bool hasPaused;
+    protected bool hasPaused; //whether or not the entity thinks the game is paused
 
+    //if the game pauses freeze the entites physics and store the velcoity.
     protected void onPause()
     {
         if(GetComponent<Rigidbody>())
@@ -24,6 +25,7 @@ public class Entity : MonoBehaviour
             GetComponent<Rigidbody>().detectCollisions = false;
         }
     }
+    //if the game unpauses renable physics and set velocity to the stored velocity.
     protected void onUnpause()
     {
         if (GetComponent<Rigidbody>())
