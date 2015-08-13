@@ -41,26 +41,55 @@ public class CameraMovement : MonoBehaviour
                 //face the player
                 transform.LookAt(Target.transform);
 
-                //Horizontal camera movement
-                if (Input.GetAxis("CameraHorizontal") > 0)
+                // Controller Input
+                Vector2 inputCVector = new Vector2(Input.GetAxis("CameraHorizontal"), Input.GetAxis("CameraVertical"));
+
+                //Horizontal controller camera movement
+                if (inputCVector.x > 0)
                 {
-                    targetPosition += ((transform.right - (transform.forward * 0.65f)).normalized * -Input.GetAxis("CameraHorizontal") * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraXInvert;
+                    targetPosition += ((transform.right - (transform.forward * 0.5f)).normalized * -inputCVector.x * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraXInvert;
                 }
-                else if (Input.GetAxis("CameraHorizontal") < 0)
+                else if (inputCVector.x < 0)
                 {
-                    targetPosition += ((transform.right + (transform.forward * 0.65f)).normalized * -Input.GetAxis("CameraHorizontal") * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraXInvert;
+                    targetPosition += ((transform.right + (transform.forward * 0.5f)).normalized * -inputCVector.x * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraXInvert;
                 }
 
-                //Vertical camera movement
-                if (Input.GetAxis("CameraVertical") > 0 && (transform.localEulerAngles.x < 80 || transform.localEulerAngles.x > 110))
+                //Vertical controller camera movement
+                if (inputCVector.y > 0 && (transform.localEulerAngles.x < 80 || transform.localEulerAngles.x > 110))
                 {
-                    targetPosition += ((transform.up + (transform.forward * 0.65f)).normalized * Input.GetAxis("CameraVertical") * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraYInvert;
+                    targetPosition += ((transform.up + (transform.forward * 0.5f)).normalized * inputCVector.y * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraYInvert;
                 }
-                else if (Input.GetAxis("CameraVertical") < 0)
+                else if (inputCVector.y < 0)
                 {
-                    targetPosition += ((transform.up - (transform.forward * 0.65f)).normalized * Input.GetAxis("CameraVertical") * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraYInvert;
+                    targetPosition += ((transform.up - (transform.forward * 0.5f)).normalized * inputCVector.y * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraYInvert;
                 }
 
+                // Mouse Input
+                Vector2 inputMVector = new Vector2(Input.GetAxis("CameraHorizontalM"), Input.GetAxis("CameraVerticalM"));
+                inputMVector = new Vector2(inputMVector.x / (Screen.width* 0.01f), inputMVector.y / (Screen.height * 0.01f));
+                
+
+                //Horizontal mouse camera movement
+                if (inputMVector.x > 0)
+                {
+                    targetPosition += ((transform.right - (transform.forward * 0.75f)).normalized * -inputMVector.x * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraXInvert;
+                }
+                else if (inputMVector.x < 0)
+                {
+                    targetPosition += ((transform.right + (transform.forward * 0.75f)).normalized * -inputMVector.x * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraXInvert;
+                }
+
+                //Vertical mouse camera movement
+                if (inputMVector.y > 0 && (transform.localEulerAngles.x < 80 || transform.localEulerAngles.x > 110))
+                {
+                    targetPosition += ((transform.up + (transform.forward * 0.75f)).normalized * inputMVector.y * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraYInvert;
+                }
+                else if (inputMVector.y < 0)
+                {
+                    targetPosition += ((transform.up - (transform.forward * 0.75f)).normalized * inputMVector.y * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraYInvert;
+                }
+
+                //Camera positional checks
                 //if the camera is too far away from the player, move it closer.
                 if (Vector3.Distance(transform.position, Target.transform.position) > 2.2)
                 {
@@ -88,7 +117,7 @@ public class CameraMovement : MonoBehaviour
                     targetPosition += Vector3.up * 0.05f;
                 }
                 //move the camera
-                transform.localPosition = Vector3.Lerp(transform.localPosition, targetPosition, 0.25f);
+                transform.localPosition = Vector3.Lerp(transform.localPosition, targetPosition, 0.2f);
             }
         }
         //if refresh quality settings is true, refresh quality settings.
