@@ -3,11 +3,20 @@ using System.Collections;
 using Smaa;
 using UnityStandardAssets.ImageEffects;
 
+//Concept and code for camera from https://www.youtube.com/playlist?list=PLKFvhfT4QOqlEReJ2lSZJk_APVq5sxZ-x
+
 public class CameraMovement : MonoBehaviour
 {
     public GameController gameMaster; // reference to the game controller
-    public GameObject Target; //the object the camera should rotate around, set in editor.
-    public Vector3 targetPosition; //the target position for the camera to move to.
+    public Transform Target; //the object the camera should rotate around, set in editor.
+
+    public float distanceAway; //distance camera tries to stay away from player
+    public float distanceUp; //
+    private Vector3 targetPosition; //the target position for the camera to move to.
+    private Vector3 lookDirection;
+    private Vector3 velocityCamSmooth = Vector3.zero;
+    public float smoothTime;
+
     float cameraSpeed; //the speed of the camera's movement.
     public bool inWater; //whether or not the camera is in water.
     public ColorCorrectionLookup waterCorrect; //reference to the color correction for the water.
@@ -17,8 +26,8 @@ public class CameraMovement : MonoBehaviour
     // Unity Start() method
     void Start()
     {
-        targetPosition = new Vector3(0.0f, 1.5f, -1.5f);
-        transform.localPosition = targetPosition;
+        //targetPosition = new Vector3(0.0f, 1.5f, -1.5f);
+        //transform.localPosition = targetPosition;
         gameMaster = GameController.gameMaster;
         cameraSpeed = 4.0f;
         inWater = false;
@@ -31,140 +40,49 @@ public class CameraMovement : MonoBehaviour
         setQuality();
     }
 
-    // Unity Update() method
-    void FixedUpdate()
+    void LateUpdate()
     {
-        if (!gameMaster.isPaused)
-        {
-            if (Target)
-            {
-                //face the player
-                transform.LookAt(Target.transform);
+        lookDirection = Target.position - transform.position;
+        lookDirection.y = 0;
+        lookDirection.Normalize();
 
-                // Controller Input
-                Vector2 inputCVector = new Vector2(Input.GetAxis("CameraHorizontal"), Input.GetAxis("CameraVertical"));
+        //set the target position to be properly offset from the character.
+        targetPosition = Target.position + Vector3.up * distanceUp - lookDirection * distanceAway;
 
-                //Horizontal controller camera movement
-                if (inputCVector.x > 0)
-                {
-                    targetPosition += ((transform.right - (transform.forward * 0.5f)).normalized * -inputCVector.x * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraXInvert;
-                }
-                else if (inputCVector.x < 0)
-                {
-                    targetPosition += ((transform.right + (transform.forward * 0.5f)).normalized * -inputCVector.x * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraXInvert;
-                }
+        //Debug.DrawRay(Target.position, Vector3.up * distanceUp, Color.red);
+        //Debug.DrawRay(Target.position, -1.0f * Target.forward * distanceAway, Color.blue);
+        //Debug.DrawLine(Target.position, targetPosition, Color.magenta);
 
-                //Vertical controller camera movement
-                if (inputCVector.y > 0 && (transform.localEulerAngles.x < 80 || transform.localEulerAngles.x > 110))
-                {
-                    targetPosition += ((transform.up + (transform.forward * 0.5f)).normalized * inputCVector.y * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraYInvert;
-                }
-                else if (inputCVector.y < 0)
-                {
-                    targetPosition += ((transform.up - (transform.forward * 0.5f)).normalized * inputCVector.y * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraYInvert;
-                }
+        wallBlocking(Target.position, ref targetPosition);
 
-                // Mouse Input
-                Vector2 inputMVector = new Vector2(Input.GetAxis("CameraHorizontalM"), Input.GetAxis("CameraVerticalM"));
-                inputMVector = new Vector2(inputMVector.x / (Screen.width* 0.01f), inputMVector.y / (Screen.height * 0.01f));
-                
-
-                //Horizontal mouse camera movement
-                if (inputMVector.x > 0)
-                {
-                    targetPosition += ((transform.right - (transform.forward * 0.75f)).normalized * -inputMVector.x * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraXInvert;
-                }
-                else if (inputMVector.x < 0)
-                {
-                    targetPosition += ((transform.right + (transform.forward * 0.75f)).normalized * -inputMVector.x * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraXInvert;
-                }
-
-                //Vertical mouse camera movement
-                if (inputMVector.y > 0 && (transform.localEulerAngles.x < 80 || transform.localEulerAngles.x > 110))
-                {
-                    targetPosition += ((transform.up + (transform.forward * 0.75f)).normalized * inputMVector.y * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraYInvert;
-                }
-                else if (inputMVector.y < 0)
-                {
-                    targetPosition += ((transform.up - (transform.forward * 0.75f)).normalized * inputMVector.y * cameraSpeed * gameMaster.cameraSensitivity * Time.deltaTime) * gameMaster.cameraYInvert;
-                }
-
-                //Camera positional checks
-                //if the camera is too far away from the player, move it closer.
-                if (Vector3.Distance(transform.position, Target.transform.position) > 2.2)
-                {
-                    targetPosition += transform.forward * 0.1f;
-                }
-                //if the camera is too close to the player, move it further.
-                if (Vector3.Distance(transform.position, Target.transform.position) < 2.0)
-                {
-                    targetPosition -= transform.forward * 0.05f;
-                }
-                RaycastHit hit;
-                //check if the camera is moving towards a wall
-                if (Physics.Raycast(transform.position, (targetPosition - transform.localPosition).normalized, out hit, 0.45f, 1 << 8))
-                {
-                    targetPosition += hit.normal * 0.1f;
-                }
-                //check if the camera is too close to the floor and move it up if it is.
-                if (Physics.Raycast(transform.position, -transform.forward, out hit, 0.45f, 1 << 8))
-                {
-                    targetPosition += transform.forward * 0.3f;
-                }
-                //check if the camera has anything behind it or in front of it, and move it up if there is.
-                if (Physics.Raycast(transform.position, Vector3.down, out hit, 0.45f, 1 << 8) || Physics.Raycast(transform.position, transform.forward, out hit, 0.35f, 1 << 8))
-                {
-                    targetPosition += Vector3.up * 0.05f;
-                }
-                //move the camera
-                transform.localPosition = Vector3.Lerp(transform.localPosition, targetPosition, 0.2f);
-            }
-        }
-        //if refresh quality settings is true, refresh quality settings.
-        if (gameMaster.refreshQuality)
-            setQuality();
+        smoothCamera(transform.position, targetPosition);
+        transform.LookAt(Target);
     }
 
-    //void LateUpdate()
-    //{
-    //    if (!gameMaster.isPaused)
-    //    {
-    //        if (Target)
-    //        {
-    //            //if the camera is too far away from the player, move it closer.
-    //            if (Vector3.Distance(transform.position, Target.transform.position) > 2.2)
-    //            {
-    //                targetPosition += transform.forward * 0.1f;
-    //            }
-    //            //if the camera is too close to the player, move it further.
-    //            if (Vector3.Distance(transform.position, Target.transform.position) < 2.0)
-    //            {
-    //                targetPosition -= transform.forward * 0.05f;
-    //            }
-    //            RaycastHit hit;
-    //            //check if the camera is moving towards a wall
-    //            if (Physics.Raycast(transform.position, (targetPosition - transform.localPosition).normalized, out hit, 0.45f, 1 << 8))
-    //            {
-    //                targetPosition += hit.normal * 0.1f;
-    //            }
-    //            //check if the camera is too close to the floor and move it up if it is.
-    //            if (Physics.Raycast(transform.position, -transform.forward, out hit, 0.45f, 1 << 8))
-    //            {
-    //                targetPosition += transform.forward * 0.3f;
-    //            }
-    //            //check if the camera has anything behind it or in front of it, and move it up if there is.
-    //            if (Physics.Raycast(transform.position, Vector3.down, out hit, 0.45f, 1 << 8) || Physics.Raycast(transform.position, transform.forward, out hit, 0.35f, 1 << 8))
-    //            {
-    //                targetPosition += Vector3.up * 0.05f;
-    //            }
-    //            //move the camera
-    //            transform.localPosition = Vector3.Lerp(transform.localPosition, targetPosition, 0.9f);
-    //        }
-    //    }
-    //}
+    // Unity Update() method
+    void Update()
+    {
+        //if refresh quality settings is true, refresh quality settings.
+        if (gameMaster.refreshQuality)
+            setQuality(); 
+    }
+
+    private void smoothCamera(Vector3 from, Vector3 to)
+    {
+        transform.position = Vector3.SmoothDamp(from, to, ref velocityCamSmooth, smoothTime);
+    }
+
+    private void wallBlocking(Vector3 from, ref Vector3 to)
+    {
+        RaycastHit wallHit = new RaycastHit();
+        if(Physics.Linecast(from, to, out wallHit, 1 << 8))
+        {
+            to = new Vector3(wallHit.point.x + transform.forward.x, to.y, wallHit.point.z + transform.forward.z);
+        }
+    }
 
     //set the quality settings important for this object
-    public void setQuality()
+    private void setQuality()
     {
         if (GetComponent<SMAA>())
         {
@@ -239,6 +157,7 @@ public class CameraMovement : MonoBehaviour
             }
         }
     }
+
 
     void OnTriggerExit(Collider iOther)
     {

@@ -386,7 +386,7 @@ public class Player : Entity
         //if the player hits a environemnt object and isin't grounded shortly disable input.
         //this is to prevent wall sticking and theoretically shouldnt cause other problems.
         if (iOther.gameObject.layer == 8 && !isGrounded)
-            inputDTimer += 0.01f;
+            inputDTimer += 0.02f;
     }
 
     //Unity OnTriggerEnter function.

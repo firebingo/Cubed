@@ -3,7 +3,7 @@ using System.Collections;
 
 public class CameraTracker : MonoBehaviour
 {
-    public GameObject cameraFollow; //refernce to the gameobject the script should follow, set in editor.
+    public Transform cameraFollow; //reference to the gameobject the script should follow, set in editor.
 
     //Unity Update() method
     void Update()
