@@ -53,6 +53,15 @@ public class CameraMovement : MonoBehaviour
             float cameraVertical = Input.GetAxis("CameraVertical");
             float cameraHorizontal = Input.GetAxis("CameraHorizontal");
 
+            if(Input.GetAxis("DPadVertical") > 0)
+            {
+                cameraState = (int)cameraStates.autoFollow;
+            }
+            if(Input.GetAxis("DPadVertical") < 0)
+            {
+                cameraState = (int)cameraStates.freeCam;
+            }
+
             switch (cameraState)
             {
                 //auto follow state
@@ -93,8 +102,9 @@ public class CameraMovement : MonoBehaviour
                 case (int)cameraStates.freeCam:
 
                     lookDirection = Vector3.Normalize(Target.position - transform.position);
+                    lookDirection.y = 0;
 
-                    targetPosition = Target.position - (lookDirection * distanceAway);
+                    targetPosition = Target.position + Vector3.up * (targetPosition.y - Target.position.y) - (lookDirection * distanceAway);
 
                     transform.position = targetPosition;
 
@@ -104,12 +114,14 @@ public class CameraMovement : MonoBehaviour
 
                     //camera vertical movement
                     if (cameraVertical > 0 || cameraVertical < 0)
-                    {
-                        if (transform.rotation.eulerAngles.x > 75 && transform.rotation.eulerAngles.x < 95)
-                            transform.rotation = Quaternion.Euler(75, transform.rotation.y, transform.rotation.z);
-                        else
-                            transform.RotateAround(Target.position, transform.right, cameraXSpeed * cameraVertical * gameMaster.cameraYInvert * gameMaster.cameraSensitivity * Time.deltaTime);
-                    }
+                        transform.RotateAround(Target.position, transform.right, cameraXSpeed * cameraVertical * gameMaster.cameraYInvert * gameMaster.cameraSensitivity * Time.deltaTime);
+
+                    //makes sure the camera is never to directly above the player
+                    if (transform.rotation.eulerAngles.x > 80 && transform.rotation.eulerAngles.x < 95)
+                        {
+                            transform.rotation = Quaternion.Euler(79, transform.rotation.y, transform.rotation.z);
+                            transform.position = new Vector3(transform.position.x, Target.position.y + 1.75f, transform.position.z);
+                        }
 
                     //prevent camera from clipping into environment objects.
                     RaycastHit wallHit = new RaycastHit();
@@ -125,7 +137,7 @@ public class CameraMovement : MonoBehaviour
         }
 
         //make the camera look at the Target
-        transform.LookAt(Target);
+        transform.LookAt(Target);        
     }
 
     // Unity Update() method
