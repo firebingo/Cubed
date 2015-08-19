@@ -16,8 +16,11 @@ public class CameraMovement : MonoBehaviour
     private Vector3 lookDirection;
     private Vector3 velocityCamSmooth = Vector3.zero;
     public float smoothTime;
+    private enum cameraStates { autoFollow, freeCam } //the states the camera can be in.
+    private int cameraState; //the current state the camera is in
 
-    float cameraSpeed; //the speed of the camera's movement.
+    float cameraYSpeed;
+    float cameraXSpeed; //the speed of the camera's movement.
     public bool inWater; //whether or not the camera is in water.
     public ColorCorrectionLookup waterCorrect; //reference to the color correction for the water.
     public ColorCorrectionLookup lavaCorrect;
@@ -29,7 +32,8 @@ public class CameraMovement : MonoBehaviour
         //targetPosition = new Vector3(0.0f, 1.5f, -1.5f);
         //transform.localPosition = targetPosition;
         gameMaster = GameController.gameMaster;
-        cameraSpeed = 4.0f;
+        cameraXSpeed = 200.0f;
+        cameraYSpeed = 3.5f;
         inWater = false;
         if (waterCorrect)
             waterCorrect.enabled = false;
@@ -38,24 +42,89 @@ public class CameraMovement : MonoBehaviour
         if (waterFog)
             waterFog.enabled = false;
         setQuality();
+        cameraState = 0;
     }
 
     void LateUpdate()
     {
-        lookDirection = Target.position - transform.position;
-        lookDirection.y = 0;
-        lookDirection.Normalize();
+        if (!gameMaster.isPaused)
+        {
 
-        //set the target position to be properly offset from the character.
-        targetPosition = Target.position + Vector3.up * distanceUp - lookDirection * distanceAway;
+            float cameraVertical = Input.GetAxis("CameraVertical");
+            float cameraHorizontal = Input.GetAxis("CameraHorizontal");
 
-        //Debug.DrawRay(Target.position, Vector3.up * distanceUp, Color.red);
-        //Debug.DrawRay(Target.position, -1.0f * Target.forward * distanceAway, Color.blue);
-        //Debug.DrawLine(Target.position, targetPosition, Color.magenta);
+            switch (cameraState)
+            {
+                //auto follow state
+                case (int)cameraStates.autoFollow:
 
-        wallBlocking(Target.position, ref targetPosition);
+                    //find the vector between the target and the camera's position, remove it's y component, then normalize it.
+                    lookDirection = Vector3.Normalize(Target.position - transform.position);
+                    lookDirection.y = 0;
 
-        smoothCamera(transform.position, targetPosition);
+                    //set the target position to be properly offset from the character.
+                    targetPosition = Target.position + Vector3.up * distanceUp - lookDirection * distanceAway;
+
+                    //camera horizontal movement
+                    if (cameraHorizontal > 0 || cameraHorizontal < 0)
+                        transform.RotateAround(Target.position, Vector3.up, cameraXSpeed * cameraHorizontal * gameMaster.cameraXInvert * gameMaster.cameraSensitivity * Time.deltaTime);
+
+                    //camera horizontal movement
+                    if (cameraVertical > 0 || cameraVertical < 0)
+                    {
+                        //if the angle is above 75 degrees push it back before letting it move further
+                        if (transform.rotation.eulerAngles.x > 75 && transform.rotation.eulerAngles.x < 95)
+                            transform.rotation = Quaternion.Euler(75, transform.rotation.y, transform.rotation.z);
+                        else
+                            transform.RotateAround(Target.position, transform.right, cameraXSpeed * cameraVertical * gameMaster.cameraYInvert * gameMaster.cameraSensitivity * Time.deltaTime);
+                    }
+
+                    //Debug.DrawRay(Target.position, Vector3.up * distanceUp, Color.red);
+                    //Debug.DrawRay(Target.position, -1.0f * Target.forward * distanceAway, Color.blue);
+                    //Debug.DrawLine(Target.position, targetPosition, Color.magenta);
+
+                    //prevent camera from clipping into environment objects.
+                    wallBlocking(Target.position, ref targetPosition);
+
+                    //smooth the camera's position to it's new target position then look at the target.
+                    smoothCamera(transform.position, targetPosition);
+
+                    break;
+                case (int)cameraStates.freeCam:
+
+                    lookDirection = Vector3.Normalize(Target.position - transform.position);
+
+                    targetPosition = Target.position - (lookDirection * distanceAway);
+
+                    transform.position = targetPosition;
+
+                    //camera horizontal movement
+                    if (cameraHorizontal > 0 || cameraHorizontal < 0)
+                        transform.RotateAround(Target.position, Vector3.up, cameraXSpeed * cameraHorizontal * gameMaster.cameraXInvert * gameMaster.cameraSensitivity * Time.deltaTime);
+
+                    //camera vertical movement
+                    if (cameraVertical > 0 || cameraVertical < 0)
+                    {
+                        if (transform.rotation.eulerAngles.x > 75 && transform.rotation.eulerAngles.x < 95)
+                            transform.rotation = Quaternion.Euler(75, transform.rotation.y, transform.rotation.z);
+                        else
+                            transform.RotateAround(Target.position, transform.right, cameraXSpeed * cameraVertical * gameMaster.cameraYInvert * gameMaster.cameraSensitivity * Time.deltaTime);
+                    }
+
+                    //prevent camera from clipping into environment objects.
+                    RaycastHit wallHit = new RaycastHit();
+                    if (Physics.Linecast(Target.position, transform.position, out wallHit, 1 << 8))
+                    {
+                        transform.position = new Vector3(wallHit.point.x, wallHit.point.y, wallHit.point.z);
+                    }
+
+                    targetPosition = transform.position;
+
+                    break;
+            }
+        }
+
+        //make the camera look at the Target
         transform.LookAt(Target);
     }
 
@@ -64,19 +133,26 @@ public class CameraMovement : MonoBehaviour
     {
         //if refresh quality settings is true, refresh quality settings.
         if (gameMaster.refreshQuality)
-            setQuality(); 
+            setQuality();
     }
 
+    //Camera smoothing method.
+    //Sets its new position to be a interpolated value between it's current position (from) and it's target (to) based of a time.
     private void smoothCamera(Vector3 from, Vector3 to)
     {
         transform.position = Vector3.SmoothDamp(from, to, ref velocityCamSmooth, smoothTime);
     }
 
+    //Camera clipping prevention method.
+    //if a linecast between the camera's position and target position hits an environment object, 
+    // change the target position to be where the linecast hit plus it's forward to prevent it from
+    // clipping into the wall.
     private void wallBlocking(Vector3 from, ref Vector3 to)
     {
         RaycastHit wallHit = new RaycastHit();
-        if(Physics.Linecast(from, to, out wallHit, 1 << 8))
+        if (Physics.Linecast(from, to, out wallHit, 1 << 8))
         {
+            Debug.DrawLine(to, wallHit.point, Color.red);
             to = new Vector3(wallHit.point.x + transform.forward.x, to.y, wallHit.point.z + transform.forward.z);
         }
     }

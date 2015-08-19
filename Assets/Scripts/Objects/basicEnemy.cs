@@ -9,7 +9,8 @@ public class basicEnemy : Entity
     bool xFlip; //used for the vector rotation
     bool zFlip; //used for the vector rotation
     float distanceToPlayer; //the distance away from the player
-    int enemyState; //what state the enemy is in. 0 = wandering, 1 = following player, 2 = wait
+    private enum enemyStates{wander, follow, wait} //states for the enemy ai
+    int enemyState; //what state the enemy is in.
     public float seekDistance; //the distance that the enemy will seek the player
     public bool waitStill; //falg to set whether or not the enemy should wait if the player isin't in range.
     bool canMove; //whether or not the enemy can move.
@@ -31,15 +32,15 @@ public class basicEnemy : Entity
             distanceToPlayer = Vector3.Distance(transform.position, GameController.gameMaster.playerPosition);
 
             if (distanceToPlayer < seekDistance)
-                enemyState = 1;
+                enemyState = (int)enemyStates.follow;
             else if (waitStill || distanceToPlayer > 30.0f)
-                enemyState = 2;
+                enemyState = (int)enemyStates.wait;
             else
-                enemyState = 0;
+                enemyState = (int)enemyStates.wander;
 
             switch (enemyState)
             {
-                case 0:
+                case (int)enemyStates.wander:
                     //if the vector's x is greater than 1, flip the bool so it starts decreasing
                     //if it's less than 1, flip the bool so it starts increasing.
                     //same is then done for z
@@ -62,11 +63,11 @@ public class basicEnemy : Entity
                         pushDirection.z += patrolAngle * Time.deltaTime;
                     canMove = true;
                     break;
-                case 1:
+                case (int)enemyStates.follow:
                     pushDirection = (GameController.gameMaster.playerPosition - transform.position).normalized;
                     canMove = true;
                     break;
-                case 2:
+                case (int)enemyStates.wait:
                     canMove = false;
                     break;
             }
