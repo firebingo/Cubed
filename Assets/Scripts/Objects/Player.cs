@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 /*
  * IMPORTANT NOTE:
@@ -10,7 +11,7 @@ using System.Collections;
 public class Player : Entity
 {
     public Camera gCamera; //reference to the game's main camera
-    Rigidbody playerPhysics; //reference to the players rigidbody
+    public Rigidbody playerPhysics; //reference to the players rigidbody
     float jumpForce; //the amount of impluse applied to make a player jump.
     public int jumpCount; //the amount of jumps the player can currently do.
     public int maxJumps; //the max amount of jumps the player can do.
@@ -37,6 +38,8 @@ public class Player : Entity
     float gravityMul; //gravity multiplier
     Vector3 checkpointPos; //the position of the checkpoint the player will respawn at if they die.
     float inputDTimer; // timer for disabling the player input temporairly. 
+    public bool isActive;
+    public List<GameObject> switchObjects;
 
     //Unity Start() method
     void Start()
@@ -70,6 +73,7 @@ public class Player : Entity
         jumpCount = maxJumps;
         gCamera = Camera.main;
         checkpointPos = transform.position;
+        switchObjects.Add(this.gameObject);
 
         hasPaused = false;
     }
@@ -79,135 +83,210 @@ public class Player : Entity
     {
         if (!gameMaster.isPaused)
         {
-            if (inputDTimer > 0)
-                inputDTimer -= Time.deltaTime;
-
-            if (invincTimer > 0)
-                invincTimer -= Time.deltaTime;
-
-            gameMaster.playerPosition = transform.position;
-            jumpTimer += Time.deltaTime;
-            dashTimer += Time.deltaTime;
-            //if the Jump button is pressed, the player has aviliable jumps, and isin't multi-jumping too quickly,
-            // have the player jump, decrement the jump count, and reset the timers.
-            if (Input.GetButtonDown("A") && jumpCount > 0 && jumpTimer > 0.2f && inputDTimer < 0.1f)
+            if (isActive)
             {
-                playerPhysics.AddForce(new Vector3(0, 1, 0) * jumpForce * Time.fixedDeltaTime, ForceMode.Impulse);
-                jumpCount--;
-                jumpTimer = 0;
-                collisionTimer = 0;
-                isGrounded = false;
-            }
+                if (inputDTimer > 0)
+                    inputDTimer -= Time.deltaTime;
 
-            //if the dash timer is over the cooldown time, reset it and allow to dash
-            if (dashTimer > 1.5f)
-            {
-                dashTimer = 0;
-                canDashTimer = true;
-            }
-            if (dashTimer > 0.75f)
-                isDashing = false;
+                if (invincTimer > 0)
+                    invincTimer -= Time.deltaTime;
 
-            //if the dash button is pressed and the player can currently dash, make the player dash.
-            if (Input.GetButtonDown("Y") && canDash && canDashTimer && inputDTimer < 0.1f)
-            {
-                ParticleSystem part = transform.GetChild(2).GetComponent<ParticleSystem>();
-                ParticleSystem partIce = transform.GetChild(3).GetComponent<ParticleSystem>();
-                ParticleSystem partFire = transform.GetChild(4).GetComponent<ParticleSystem>();
-                //if cant air dash and is on the ground.
-                if (!canAirDash && jumpCount > 0)
+                gameMaster.playerPosition = transform.position;
+                jumpTimer += Time.deltaTime;
+                dashTimer += Time.deltaTime;
+                //if the Jump button is pressed, the player has aviliable jumps, and isin't multi-jumping too quickly,
+                // have the player jump, decrement the jump count, and reset the timers.
+                if (Input.GetButtonDown("A") && jumpCount > 0 && jumpTimer > 0.2f && inputDTimer < 0.1f)
                 {
-                    playerPhysics.AddForce(Vector3.Scale(playerPhysics.velocity.normalized, new Vector3(1, 0, 1)) * jumpForce / 1.2f * Time.fixedDeltaTime, ForceMode.Impulse);
-                    canDashTimer = false;
-                    if (!transform.GetChild(0).gameObject.activeSelf && !transform.GetChild(1).gameObject.activeSelf)
-                        part.Play();
-                    if (transform.GetChild(0).gameObject.activeSelf)
-                        partIce.Play();
-                    if (transform.GetChild(1).gameObject.activeSelf)
-                        partFire.Play();
+                    playerPhysics.AddForce(new Vector3(0, 1, 0) * jumpForce * Time.fixedDeltaTime, ForceMode.Impulse);
+                    jumpCount--;
+                    jumpTimer = 0;
+                    collisionTimer = 0;
+                    isGrounded = false;
                 }
-                //if canairdash and is on the ground.
-                else if (canAirDash && jumpCount > 0)
-                {
-                    playerPhysics.AddForce(Vector3.Scale(playerPhysics.velocity.normalized, new Vector3(1, 0, 1)) * jumpForce / 1.2f * Time.fixedDeltaTime, ForceMode.Impulse);
-                    canDashTimer = false;
-                    if (!transform.GetChild(0).gameObject.activeSelf && !transform.GetChild(1).gameObject.activeSelf)
-                        part.Play();
-                    if (transform.GetChild(0).gameObject.activeSelf)
-                        partIce.Play();
-                    if (transform.GetChild(1).gameObject.activeSelf)
-                        partFire.Play();
-                }
-                //if can air dash and is not on the ground
-                else if (canAirDash)
-                {
-                    playerPhysics.AddForce(Vector3.Scale(playerPhysics.velocity.normalized, new Vector3(1, 0, 1)) * jumpForce / 1.5f * Time.fixedDeltaTime, ForceMode.Impulse);
-                    canDashTimer = false;
-                    if (!transform.GetChild(0).gameObject.activeSelf && !transform.GetChild(1).gameObject.activeSelf)
-                        part.Play();
-                    if (transform.GetChild(0).gameObject.activeSelf)
-                        partIce.Play();
-                    if (transform.GetChild(1).gameObject.activeSelf)
-                        partFire.Play();
-                }
-                dashTimer = 0;
-                isDashing = true;
-            }
 
-            //if the Ice Shield button is hit, the Fire Shield Button isin't and the player can use the Ice Shield,
-            // set the Ice Shield to be active and disable the cube's hit box.
-            //Otherwise, disable the Ice Shield and enable the cube's collider.
-            if (Input.GetButton("X") && !Input.GetButton("B") && canIceShield && iceShieldTime > 0 && inputDTimer < 0.1f)
-            {
-                iceShieldTime -= Time.deltaTime;
-                if (!transform.GetChild(0).gameObject.activeSelf)
+                //if the dash timer is over the cooldown time, reset it and allow to dash
+                if (dashTimer > 1.5f)
                 {
-                    //playerPhysics.AddForce(new Vector3(0, 1, 0) * 1.0f * Time.fixedDeltaTime, ForceMode.Impulse);
-                    transform.GetChild(0).gameObject.SetActive(true);
-                    GetComponent<BoxCollider>().enabled = false;
+                    dashTimer = 0;
+                    canDashTimer = true;
                 }
-            }
-            else
-            {
-                if (transform.GetChild(0).gameObject.activeSelf)
-                {
-                    transform.GetChild(0).gameObject.SetActive(false);
-                    GetComponent<BoxCollider>().enabled = true;
-                }
-            }
+                if (dashTimer > 0.75f)
+                    isDashing = false;
 
-            //if the Fire Shield button is hit, the Fire Shield Button isin't and the player can use the Fire Shield,
-            // set the Fire Shield to be active and disable the cube's hit box.
-            //Otherwise, disable the Fire Shield and enable the cube's collider.
-            if (Input.GetButton("B") && !Input.GetButton("X") && canFireShield && fireShieldTime > 0 && inputDTimer < 0.1f)
-            {
-                fireShieldTime -= Time.deltaTime;
-                if (!transform.GetChild(1).gameObject.activeSelf)
+                //if the dash button is pressed and the player can currently dash, make the player dash.
+                if (Input.GetButtonDown("Y") && canDash && canDashTimer && inputDTimer < 0.1f)
                 {
-                    //playerPhysics.AddForce(new Vector3(0, 1, 0) * 1.0f * Time.fixedDeltaTime, ForceMode.Impulse);
-                    transform.GetChild(1).gameObject.SetActive(true);
-                    GetComponent<BoxCollider>().enabled = false;
+                    ParticleSystem part = transform.GetChild(2).GetComponent<ParticleSystem>();
+                    ParticleSystem partIce = transform.GetChild(3).GetComponent<ParticleSystem>();
+                    ParticleSystem partFire = transform.GetChild(4).GetComponent<ParticleSystem>();
+                    //if cant air dash and is on the ground.
+                    if (!canAirDash && jumpCount > 0)
+                    {
+                        playerPhysics.AddForce(Vector3.Scale(playerPhysics.velocity.normalized, new Vector3(1, 0, 1)) * jumpForce / 1.2f * Time.fixedDeltaTime, ForceMode.Impulse);
+                        canDashTimer = false;
+                        if (!transform.GetChild(0).gameObject.activeSelf && !transform.GetChild(1).gameObject.activeSelf)
+                            part.Play();
+                        if (transform.GetChild(0).gameObject.activeSelf)
+                            partIce.Play();
+                        if (transform.GetChild(1).gameObject.activeSelf)
+                            partFire.Play();
+                    }
+                    //if canairdash and is on the ground.
+                    else if (canAirDash && jumpCount > 0)
+                    {
+                        playerPhysics.AddForce(Vector3.Scale(playerPhysics.velocity.normalized, new Vector3(1, 0, 1)) * jumpForce / 1.2f * Time.fixedDeltaTime, ForceMode.Impulse);
+                        canDashTimer = false;
+                        if (!transform.GetChild(0).gameObject.activeSelf && !transform.GetChild(1).gameObject.activeSelf)
+                            part.Play();
+                        if (transform.GetChild(0).gameObject.activeSelf)
+                            partIce.Play();
+                        if (transform.GetChild(1).gameObject.activeSelf)
+                            partFire.Play();
+                    }
+                    //if can air dash and is not on the ground
+                    else if (canAirDash)
+                    {
+                        playerPhysics.AddForce(Vector3.Scale(playerPhysics.velocity.normalized, new Vector3(1, 0, 1)) * jumpForce / 1.5f * Time.fixedDeltaTime, ForceMode.Impulse);
+                        canDashTimer = false;
+                        if (!transform.GetChild(0).gameObject.activeSelf && !transform.GetChild(1).gameObject.activeSelf)
+                            part.Play();
+                        if (transform.GetChild(0).gameObject.activeSelf)
+                            partIce.Play();
+                        if (transform.GetChild(1).gameObject.activeSelf)
+                            partFire.Play();
+                    }
+                    dashTimer = 0;
+                    isDashing = true;
                 }
-            }
-            else
-            {
-                if (transform.GetChild(1).gameObject.activeSelf)
+
+                if (Input.GetButtonDown("X") && inputDTimer < 0.1f)
                 {
-                    transform.GetChild(1).gameObject.SetActive(false);
-                    GetComponent<BoxCollider>().enabled = true;
+                    int index = 0;
+                    for (int i = 0; i < gameMaster.playerObjects.Length; ++i)
+                    {
+                        if (gameMaster.playerObjects[i])
+                        {
+                            if (gameMaster.playerObjects[i].Equals(this))
+                            {
+                                index = i;
+                                i = gameMaster.playerObjects.Length;
+                            }
+                        }
+                    }
+                    if(index == gameMaster.playerObjects.Length - 1)
+                    {
+                        if (gameMaster.playerObjects[0])
+                        {
+                        gameMaster.playerObjects[0].inputDTimer = 0.2f;
+                        gameMaster.playerObjects[0].isActive = true;
+                        gameMaster.cameraTracker.cameraFollow = gameMaster.playerObjects[0].transform;
+                        isActive = false;
+                        }
+                    }
+                    else
+                    {
+                        if (gameMaster.playerObjects[index + 1])
+                        {
+                            gameMaster.playerObjects[index + 1].inputDTimer = 0.2f;
+                            gameMaster.playerObjects[index + 1].isActive = true;
+                            gameMaster.cameraTracker.cameraFollow = gameMaster.playerObjects[index + 1].transform;
+                            isActive = false;
+                        }
+                    }
                 }
+
+                if (Input.GetButtonDown("Y") && inputDTimer < 0.1f && switchObjects.Count > 1)
+                {
+                    int index = 0;
+                    Debug.Log(switchObjects.Count);
+                    for(int i = 0; i < switchObjects.Count; ++i)
+                    {
+                        if (switchObjects[i].Equals(this.gameObject))
+                        {
+                            index = i;
+                            i = switchObjects.Count;
+                        }
+                    }
+                    if(index == switchObjects.Count -1)
+                    {
+                        Player pComp = switchObjects[0].GetComponent<Player>();
+                        pComp.inputDTimer = 0.2f;
+                        switchObjects[0].SetActive(true);
+                        switchObjects[0].transform.position = transform.position;
+                        gameMaster.cameraTracker.cameraFollow = switchObjects[0].transform;
+                        pComp.playerPhysics.velocity = playerPhysics.velocity;
+                        pComp.isActive = true;
+                        gameObject.SetActive(false);
+                    }
+                    else
+                    {
+                        Player pComp = switchObjects[index+1].GetComponent<Player>();
+                        pComp.inputDTimer = 0.2f;
+                        switchObjects[index + 1].SetActive(true);
+                        switchObjects[index + 1].transform.position = transform.position;
+                        gameMaster.cameraTracker.cameraFollow = switchObjects[index+1].transform;
+                        pComp.playerPhysics.velocity = playerPhysics.velocity;
+                        pComp.isActive = true;
+                        gameObject.SetActive(false);
+                    }
+                }
+
+                //if the Ice Shield button is hit, the Fire Shield Button isin't and the player can use the Ice Shield,
+                // set the Ice Shield to be active and disable the cube's hit box.
+                //Otherwise, disable the Ice Shield and enable the cube's collider.
+                //if (Input.GetButton("X") && !Input.GetButton("B") && canIceShield && iceShieldTime > 0 && inputDTimer < 0.1f)
+                //{
+                //    iceShieldTime -= Time.deltaTime;
+                //    if (!transform.GetChild(0).gameObject.activeSelf)
+                //    {
+                //        //playerPhysics.AddForce(new Vector3(0, 1, 0) * 1.0f * Time.fixedDeltaTime, ForceMode.Impulse);
+                //        transform.GetChild(0).gameObject.SetActive(true);
+                //        GetComponent<BoxCollider>().enabled = false;
+                //    }
+                //}
+                //else
+                //{
+                //    if (transform.GetChild(0).gameObject.activeSelf)
+                //    {
+                //        transform.GetChild(0).gameObject.SetActive(false);
+                //        GetComponent<BoxCollider>().enabled = true;
+                //    }
+                //}
+
+                //if the Fire Shield button is hit, the Fire Shield Button isin't and the player can use the Fire Shield,
+                // set the Fire Shield to be active and disable the cube's hit box.
+                //Otherwise, disable the Fire Shield and enable the cube's collider.
+                //if (Input.GetButton("B") && !Input.GetButton("X") && canFireShield && fireShieldTime > 0 && inputDTimer < 0.1f)
+                //{
+                //    fireShieldTime -= Time.deltaTime;
+                //    if (!transform.GetChild(1).gameObject.activeSelf)
+                //    {
+                //        //playerPhysics.AddForce(new Vector3(0, 1, 0) * 1.0f * Time.fixedDeltaTime, ForceMode.Impulse);
+                //        transform.GetChild(1).gameObject.SetActive(true);
+                //        GetComponent<BoxCollider>().enabled = false;
+                //    }
+                //}
+                //else
+                //{
+                //    if (transform.GetChild(1).gameObject.activeSelf)
+                //    {
+                //        transform.GetChild(1).gameObject.SetActive(false);
+                //        GetComponent<BoxCollider>().enabled = true;
+                //    }
+                //}
+
+                //check if the sheild use is allowed according to the global settings.
+                if (GameController.gameMaster.playerCanUseIceShield)
+                    canIceShield = true;
+                else if (canIceShield)
+                    canIceShield = false;
+
+                if (GameController.gameMaster.playerCanUseFireShield)
+                    canFireShield = true;
+                else if (canFireShield)
+                    canFireShield = false;
             }
-
-            //check if the sheild use is allowed according to the global settings.
-            if (GameController.gameMaster.playerCanUseIceShield)
-                canIceShield = true;
-            else if (canIceShield)
-                canIceShield = false;
-
-            if (GameController.gameMaster.playerCanUseFireShield)
-                canFireShield = true;
-            else if (canFireShield)
-                canFireShield = false;
 
             //if the player is out of health
             if (health < 0)
@@ -262,29 +341,32 @@ public class Player : Entity
                 onUnpause();
                 hasPaused = false;
             }
+
             //Gravity, be sure to disable the rigidbody's gravity so it just uses this.
             playerPhysics.AddForce(Physics.gravity * playerPhysics.mass * gravityMul);
-
-            if (inputDTimer < 0.1f)
+            if (isActive)
             {
-                //Forward and reverse movement controls.
-                if (Input.GetAxis("Vertical") > 0 && playerPhysics.velocity.magnitude < maxSpeed)
+                if (inputDTimer < 0.1f)
                 {
-                    playerPhysics.AddForceAtPosition(new Vector3(gCamera.transform.forward.x, 0, gCamera.transform.forward.z).normalized * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Vertical"), new Vector3(transform.position.x, transform.position.y + (0.35f * transform.localScale.y), transform.position.z - (0.5f * transform.localScale.z)), ForceMode.Force);
-                }
-                else if (Input.GetAxis("Vertical") < 0 && playerPhysics.velocity.magnitude < maxSpeed)
-                {
-                    playerPhysics.AddForceAtPosition(new Vector3(gCamera.transform.forward.x, 0, gCamera.transform.forward.z).normalized * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Vertical"), new Vector3(transform.position.x, transform.position.y + (0.35f * transform.localScale.y), transform.position.z + (0.5f * transform.localScale.z)), ForceMode.Force);
-                }
+                    //Forward and reverse movement controls.
+                    if (Input.GetAxis("Vertical") > 0 && playerPhysics.velocity.magnitude < maxSpeed)
+                    {
+                        playerPhysics.AddForceAtPosition(new Vector3(gCamera.transform.forward.x, 0, gCamera.transform.forward.z).normalized * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Vertical"), new Vector3(transform.position.x, transform.position.y + (0.35f * transform.localScale.y), transform.position.z - (0.5f * transform.localScale.z)), ForceMode.Force);
+                    }
+                    else if (Input.GetAxis("Vertical") < 0 && playerPhysics.velocity.magnitude < maxSpeed)
+                    {
+                        playerPhysics.AddForceAtPosition(new Vector3(gCamera.transform.forward.x, 0, gCamera.transform.forward.z).normalized * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Vertical"), new Vector3(transform.position.x, transform.position.y + (0.35f * transform.localScale.y), transform.position.z + (0.5f * transform.localScale.z)), ForceMode.Force);
+                    }
 
-                //Sideways movement controls.
-                if (Input.GetAxis("Horizontal") > 0 && playerPhysics.velocity.magnitude < maxSpeed)
-                {
-                    playerPhysics.AddForceAtPosition(gCamera.transform.right * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Horizontal"), new Vector3(transform.position.x - (0.5f * transform.localScale.x), transform.position.y + (0.35f * transform.localScale.y), transform.position.z), ForceMode.Force);
-                }
-                else if (Input.GetAxis("Horizontal") < 0 && playerPhysics.velocity.magnitude < maxSpeed)
-                {
-                    playerPhysics.AddForceAtPosition(gCamera.transform.right * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Horizontal"), new Vector3(transform.position.x + (0.5f * transform.localScale.x), transform.position.y + (0.35f * transform.localScale.y), transform.position.z), ForceMode.Force);
+                    //Sideways movement controls.
+                    if (Input.GetAxis("Horizontal") > 0 && playerPhysics.velocity.magnitude < maxSpeed)
+                    {
+                        playerPhysics.AddForceAtPosition(gCamera.transform.right * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Horizontal"), new Vector3(transform.position.x - (0.5f * transform.localScale.x), transform.position.y + (0.35f * transform.localScale.y), transform.position.z), ForceMode.Force);
+                    }
+                    else if (Input.GetAxis("Horizontal") < 0 && playerPhysics.velocity.magnitude < maxSpeed)
+                    {
+                        playerPhysics.AddForceAtPosition(gCamera.transform.right * moveSpeed * Time.fixedDeltaTime * Input.GetAxis("Horizontal"), new Vector3(transform.position.x + (0.5f * transform.localScale.x), transform.position.y + (0.35f * transform.localScale.y), transform.position.z), ForceMode.Force);
+                    }
                 }
             }
         }
@@ -354,6 +436,25 @@ public class Player : Entity
                 invincTimer = invincTime;
             }
             playerPhysics.AddForce(((iOther.contacts[0].normal).normalized + new Vector3(0, 0.25f, 0)) * Time.fixedDeltaTime * damagePushBack, ForceMode.Impulse);
+        }
+        if(iOther.gameObject.tag == "Player")
+        {
+            if (!iOther.gameObject.GetComponent<Player>().isActive)
+            {
+                switchObjects.Add(iOther.gameObject);
+                iOther.gameObject.SetActive(false);
+                iOther.gameObject.GetComponent<Player>().switchObjects = switchObjects;
+
+                for (int i = 0; i < gameMaster.playerObjects.Length; ++i)
+                {
+                    if (gameMaster.playerObjects[i].Equals(this))
+                    {
+                        gameMaster.playerObjects[i] = null;
+                        i = gameMaster.playerObjects.Length;
+                    }
+                }
+                
+            }
         }
 
         //if the player hits a kill plane kill them.
@@ -440,7 +541,7 @@ public class Player : Entity
     //Unity OnTriggerExit function.
     void OnTriggerExit(Collider iOther)
     {
-        
+
         if (iOther.gameObject.tag == "Water")
         {
             //if the player passes a water plane and is above it change it's physics to accomodate

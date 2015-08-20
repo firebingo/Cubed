@@ -104,7 +104,7 @@ public class CameraMovement : MonoBehaviour
                     lookDirection = Vector3.Normalize(Target.position - transform.position);
                     lookDirection.y = 0;
 
-                    targetPosition = Target.position + Vector3.up * (targetPosition.y - Target.position.y) - (lookDirection * distanceAway);
+                    targetPosition = Target.position + Vector3.up * (targetPosition.y - Target.position.y) - (Vector3.ProjectOnPlane(transform.forward, Vector3.up) * distanceAway);
 
                     transform.position = targetPosition;
 

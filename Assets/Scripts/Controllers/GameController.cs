@@ -44,6 +44,9 @@ public class GameController : MonoBehaviour
     public bool isPaused; //whether or not the game is paused.
     public bool hasPaused;
     public GameObject pauseMenu;
+    public CameraTracker cameraTracker;
+
+    public Player[] playerObjects;
 
     // Unity Awake() method
     void Awake()
