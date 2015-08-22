@@ -39,7 +39,8 @@ public class Player : Entity
     Vector3 checkpointPos; //the position of the checkpoint the player will respawn at if they die.
     float inputDTimer; // timer for disabling the player input temporairly. 
     public bool isActive;
-    public List<GameObject> switchObjects;
+    public bool isAbsorbed;
+    Player absorbedBy; 
 
     //Unity Start() method
     void Start()
@@ -73,7 +74,6 @@ public class Player : Entity
         jumpCount = maxJumps;
         gCamera = Camera.main;
         checkpointPos = transform.position;
-        switchObjects.Add(this.gameObject);
 
         hasPaused = false;
     }
@@ -163,6 +163,7 @@ public class Player : Entity
                 if (Input.GetButtonDown("X") && inputDTimer < 0.1f)
                 {
                     int index = 0;
+
                     for (int i = 0; i < gameMaster.playerObjects.Length; ++i)
                     {
                         if (gameMaster.playerObjects[i])
@@ -174,61 +175,48 @@ public class Player : Entity
                             }
                         }
                     }
-                    if(index == gameMaster.playerObjects.Length - 1)
+
+                    if (index == gameMaster.playerObjects.Length - 1)
                     {
                         if (gameMaster.playerObjects[0])
                         {
-                        gameMaster.playerObjects[0].inputDTimer = 0.2f;
-                        gameMaster.playerObjects[0].isActive = true;
-                        gameMaster.cameraTracker.cameraFollow = gameMaster.playerObjects[0].transform;
-                        isActive = false;
+                            if (gameMaster.playerObjects[0].isAbsorbed)
+                            {
+                                gameMaster.playerObjects[0].gameObject.SetActive(true);
+                                gameMaster.playerObjects[0].transform.position = transform.position;
+                                gameMaster.playerObjects[0].playerPhysics.velocity = playerPhysics.velocity;
+                                gameMaster.playerObjects[0].jumpCount = absorbedBy.jumpCount;
+                                if (isAbsorbed)
+                                {
+                                    gameObject.SetActive(false);
+                                }
+                            }
+                            gameMaster.playerObjects[0].inputDTimer = 0.2f;
+                            gameMaster.playerObjects[0].isActive = true;
+                            gameMaster.cameraTracker.cameraFollow = gameMaster.playerObjects[0].transform;
+                            isActive = false;
                         }
                     }
                     else
                     {
                         if (gameMaster.playerObjects[index + 1])
                         {
+                            if (gameMaster.playerObjects[index + 1].isAbsorbed)
+                            {
+                                gameMaster.playerObjects[index + 1].gameObject.SetActive(true);
+                                gameMaster.playerObjects[index + 1].transform.position = transform.position;
+                                gameMaster.playerObjects[index + 1].playerPhysics.velocity = playerPhysics.velocity;
+                                gameMaster.playerObjects[index + 1].jumpCount = jumpCount;
+                                if (isAbsorbed)
+                                {
+                                    gameObject.SetActive(false);
+                                }
+                            }
                             gameMaster.playerObjects[index + 1].inputDTimer = 0.2f;
                             gameMaster.playerObjects[index + 1].isActive = true;
                             gameMaster.cameraTracker.cameraFollow = gameMaster.playerObjects[index + 1].transform;
                             isActive = false;
                         }
-                    }
-                }
-
-                if (Input.GetButtonDown("Y") && inputDTimer < 0.1f && switchObjects.Count > 1)
-                {
-                    int index = 0;
-                    Debug.Log(switchObjects.Count);
-                    for(int i = 0; i < switchObjects.Count; ++i)
-                    {
-                        if (switchObjects[i].Equals(this.gameObject))
-                        {
-                            index = i;
-                            i = switchObjects.Count;
-                        }
-                    }
-                    if(index == switchObjects.Count -1)
-                    {
-                        Player pComp = switchObjects[0].GetComponent<Player>();
-                        pComp.inputDTimer = 0.2f;
-                        switchObjects[0].SetActive(true);
-                        switchObjects[0].transform.position = transform.position;
-                        gameMaster.cameraTracker.cameraFollow = switchObjects[0].transform;
-                        pComp.playerPhysics.velocity = playerPhysics.velocity;
-                        pComp.isActive = true;
-                        gameObject.SetActive(false);
-                    }
-                    else
-                    {
-                        Player pComp = switchObjects[index+1].GetComponent<Player>();
-                        pComp.inputDTimer = 0.2f;
-                        switchObjects[index + 1].SetActive(true);
-                        switchObjects[index + 1].transform.position = transform.position;
-                        gameMaster.cameraTracker.cameraFollow = switchObjects[index+1].transform;
-                        pComp.playerPhysics.velocity = playerPhysics.velocity;
-                        pComp.isActive = true;
-                        gameObject.SetActive(false);
                     }
                 }
 
@@ -437,23 +425,16 @@ public class Player : Entity
             }
             playerPhysics.AddForce(((iOther.contacts[0].normal).normalized + new Vector3(0, 0.25f, 0)) * Time.fixedDeltaTime * damagePushBack, ForceMode.Impulse);
         }
-        if(iOther.gameObject.tag == "Player")
+        if (iOther.gameObject.tag == "Player")
         {
             if (!iOther.gameObject.GetComponent<Player>().isActive)
             {
-                switchObjects.Add(iOther.gameObject);
+                Player oPlayer = iOther.gameObject.GetComponent<Player>();
+                isAbsorbed = true;
+                absorbedBy = oPlayer;
+                oPlayer.absorbedBy = this;
+                oPlayer.isAbsorbed = true;
                 iOther.gameObject.SetActive(false);
-                iOther.gameObject.GetComponent<Player>().switchObjects = switchObjects;
-
-                for (int i = 0; i < gameMaster.playerObjects.Length; ++i)
-                {
-                    if (gameMaster.playerObjects[i].Equals(this))
-                    {
-                        gameMaster.playerObjects[i] = null;
-                        i = gameMaster.playerObjects.Length;
-                    }
-                }
-                
             }
         }
 
