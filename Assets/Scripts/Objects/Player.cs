@@ -40,7 +40,7 @@ public class Player : Entity
     float inputDTimer; // timer for disabling the player input temporairly. 
     public bool isActive;
     public bool isAbsorbed;
-    Player absorbedBy; 
+    public List<Player> absorbedList;
 
     //Unity Start() method
     void Start()
@@ -74,6 +74,8 @@ public class Player : Entity
         jumpCount = maxJumps;
         gCamera = Camera.main;
         checkpointPos = transform.position;
+        absorbedList = new List<Player>();
+        absorbedList.Add(this);
 
         hasPaused = false;
     }
@@ -180,15 +182,32 @@ public class Player : Entity
                     {
                         if (gameMaster.playerObjects[0])
                         {
-                            if (gameMaster.playerObjects[0].isAbsorbed)
+                            if(gameMaster.playerObjects[0].isAbsorbed)
                             {
-                                gameMaster.playerObjects[0].gameObject.SetActive(true);
-                                gameMaster.playerObjects[0].transform.position = transform.position;
-                                gameMaster.playerObjects[0].playerPhysics.velocity = playerPhysics.velocity;
-                                gameMaster.playerObjects[0].jumpCount = absorbedBy.jumpCount;
-                                if (isAbsorbed)
+                                if(gameMaster.playerObjects[0].absorbedList.Contains(this))
                                 {
+                                    gameMaster.playerObjects[0].gameObject.SetActive(true);
+                                    gameMaster.playerObjects[0].transform.position = transform.position;
+                                    gameMaster.playerObjects[0].playerPhysics.velocity = playerPhysics.velocity;
+                                    gameMaster.playerObjects[0].jumpCount = jumpCount;
                                     gameObject.SetActive(false);
+                                }
+                                else
+                                {
+                                    for(int i= 0; i < gameMaster.playerObjects.Length; ++i)
+                                    {
+                                        if(gameMaster.playerObjects[0].absorbedList.Contains(gameMaster.playerObjects[i]))
+                                        {
+                                            for (int j = 0; j < gameMaster.playerObjects[0].absorbedList.Count; ++j)
+                                            {
+                                                gameMaster.playerObjects[0].absorbedList[j].gameObject.SetActive(false);
+                                            }
+                                            gameMaster.playerObjects[0].gameObject.SetActive(true);
+                                            gameMaster.playerObjects[0].transform.position = gameMaster.playerObjects[i].transform.position;
+                                            gameMaster.playerObjects[0].playerPhysics.velocity = gameMaster.playerObjects[i].playerPhysics.velocity;
+                                            gameMaster.playerObjects[0].jumpCount = gameMaster.playerObjects[i].jumpCount;
+                                        }
+                                    }
                                 }
                             }
                             gameMaster.playerObjects[0].inputDTimer = 0.2f;
@@ -203,18 +222,35 @@ public class Player : Entity
                         {
                             if (gameMaster.playerObjects[index + 1].isAbsorbed)
                             {
-                                gameMaster.playerObjects[index + 1].gameObject.SetActive(true);
-                                gameMaster.playerObjects[index + 1].transform.position = transform.position;
-                                gameMaster.playerObjects[index + 1].playerPhysics.velocity = playerPhysics.velocity;
-                                gameMaster.playerObjects[index + 1].jumpCount = jumpCount;
-                                if (isAbsorbed)
+                                if (gameMaster.playerObjects[index + 1].absorbedList.Contains(this))
                                 {
+                                    gameMaster.playerObjects[index + 1].gameObject.SetActive(true);
+                                    gameMaster.playerObjects[index + 1].transform.position = transform.position;
+                                    gameMaster.playerObjects[index + 1].playerPhysics.velocity = playerPhysics.velocity;
+                                    gameMaster.playerObjects[index + 1].jumpCount = jumpCount;
                                     gameObject.SetActive(false);
+                                }
+                                else
+                                {
+                                    for (int i = 0; i < gameMaster.playerObjects.Length; ++i)
+                                    {
+                                        if (gameMaster.playerObjects[index + 1].absorbedList.Contains(gameMaster.playerObjects[i]))
+                                        {
+                                            for (int j = 0; j < gameMaster.playerObjects[index + 1].absorbedList.Count; ++j)
+                                            {
+                                                gameMaster.playerObjects[index + 1].absorbedList[j].gameObject.SetActive(false);
+                                            }
+                                            gameMaster.playerObjects[index + 1].gameObject.SetActive(true);
+                                            gameMaster.playerObjects[index + 1].transform.position = gameMaster.playerObjects[i].transform.position;
+                                            gameMaster.playerObjects[index + 1].playerPhysics.velocity = gameMaster.playerObjects[i].playerPhysics.velocity;
+                                            gameMaster.playerObjects[index + 1].jumpCount = gameMaster.playerObjects[i].jumpCount;
+                                        }
+                                    }
                                 }
                             }
                             gameMaster.playerObjects[index + 1].inputDTimer = 0.2f;
                             gameMaster.playerObjects[index + 1].isActive = true;
-                            gameMaster.cameraTracker.cameraFollow = gameMaster.playerObjects[index + 1].transform;
+                            gameMaster.cameraTracker.cameraFollow = gameMaster.playerObjects[index+1].transform;
                             isActive = false;
                         }
                     }
@@ -431,8 +467,21 @@ public class Player : Entity
             {
                 Player oPlayer = iOther.gameObject.GetComponent<Player>();
                 isAbsorbed = true;
-                absorbedBy = oPlayer;
-                oPlayer.absorbedBy = this;
+
+                if (!absorbedList.Contains(oPlayer))
+                    absorbedList.Add(oPlayer);
+
+                if(!oPlayer.absorbedList.Contains(this))
+                    oPlayer.absorbedList.Add(this);
+
+                for (int i = 0; i < absorbedList.Count; ++i)
+                {
+                    if(!absorbedList[i].absorbedList.Contains(oPlayer))
+                        absorbedList[i].absorbedList.Add(oPlayer);
+                    if (!oPlayer.absorbedList.Contains(absorbedList[i]))
+                        oPlayer.absorbedList.Add(absorbedList[i]);
+                }
+
                 oPlayer.isAbsorbed = true;
                 iOther.gameObject.SetActive(false);
             }
