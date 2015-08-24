@@ -10,6 +10,9 @@ using System.Collections.Generic;
 
 public class Player : Entity
 {
+    public enum shapes { Cube, Sphere, Pyramid };
+    public enum colors { red, green, blue };
+
     public Camera gCamera; //reference to the game's main camera
     public Rigidbody playerPhysics; //reference to the players rigidbody
     float jumpForce; //the amount of impluse applied to make a player jump.
@@ -38,9 +41,9 @@ public class Player : Entity
     float gravityMul; //gravity multiplier
     Vector3 checkpointPos; //the position of the checkpoint the player will respawn at if they die.
     float inputDTimer; // timer for disabling the player input temporairly. 
-    public bool isActive;
-    public bool isAbsorbed;
-    public List<Player> absorbedList;
+    public bool isActive; // whether or not the player object is currently active and receiving controls.
+    public bool isAbsorbed; // whether or not the object has been absored/absorbed another object 
+    public List<Player> absorbedList; // the list of objects that have been absorbed.
 
     //Unity Start() method
     void Start()
@@ -164,8 +167,8 @@ public class Player : Entity
 
                 if (Input.GetButtonDown("X") && inputDTimer < 0.1f)
                 {
+                    //find the index of this object in the playerObjects array
                     int index = 0;
-
                     for (int i = 0; i < gameMaster.playerObjects.Length; ++i)
                     {
                         if (gameMaster.playerObjects[i])
@@ -178,12 +181,16 @@ public class Player : Entity
                         }
                     }
 
+                    //if the index of this object is at the top of the array, switch to the object at the botton of the array.
                     if (index == gameMaster.playerObjects.Length - 1)
                     {
                         if (gameMaster.playerObjects[0])
                         {
+                            //if the object that we are switching to is absorbed.
                             if(gameMaster.playerObjects[0].isAbsorbed)
                             {
+                                //if this object is on the absorbed list of the object we are switching to, set it to active and give it the traits of this object
+                                // then set this object to false.
                                 if(gameMaster.playerObjects[0].absorbedList.Contains(this))
                                 {
                                     gameMaster.playerObjects[0].gameObject.SetActive(true);
@@ -194,7 +201,10 @@ public class Player : Entity
                                 }
                                 else
                                 {
-                                    for(int i= 0; i < gameMaster.playerObjects.Length; ++i)
+                                    //search through the playerobjects array to find the first object that is in the absorbed list of
+                                    // the object that is being switched to. When it finds it, disable all the objects in the absorbed list,
+                                    // then enable the one that is being switched to and set it's traits to the first object found.
+                                    for (int i = 0; i < gameMaster.playerObjects.Length; ++i)
                                     {
                                         if(gameMaster.playerObjects[0].absorbedList.Contains(gameMaster.playerObjects[i]))
                                         {
@@ -206,6 +216,8 @@ public class Player : Entity
                                             gameMaster.playerObjects[0].transform.position = gameMaster.playerObjects[i].transform.position;
                                             gameMaster.playerObjects[0].playerPhysics.velocity = gameMaster.playerObjects[i].playerPhysics.velocity;
                                             gameMaster.playerObjects[0].jumpCount = gameMaster.playerObjects[i].jumpCount;
+                                            //ends the for loop since it doesnt need to continue anymore.
+                                            i = gameMaster.playerObjects.Length + 1;
                                         }
                                     }
                                 }
@@ -216,6 +228,7 @@ public class Player : Entity
                             isActive = false;
                         }
                     }
+                    //same operations as above except it is switching the next object in the objects array.
                     else
                     {
                         if (gameMaster.playerObjects[index + 1])
@@ -474,12 +487,19 @@ public class Player : Entity
                 if(!oPlayer.absorbedList.Contains(this))
                     oPlayer.absorbedList.Add(this);
 
-                for (int i = 0; i < absorbedList.Count; ++i)
+                for (int i = 0; i < oPlayer.absorbedList.Count; ++i )
                 {
-                    if(!absorbedList[i].absorbedList.Contains(oPlayer))
-                        absorbedList[i].absorbedList.Add(oPlayer);
-                    if (!oPlayer.absorbedList.Contains(absorbedList[i]))
-                        oPlayer.absorbedList.Add(absorbedList[i]);
+                    for (int j = 0; j < absorbedList.Count; ++j )
+                    {
+                        if(!oPlayer.absorbedList.Contains(absorbedList[j]))
+                        {
+                            oPlayer.absorbedList.Add(absorbedList[j]);
+                        }
+                    }
+                    if (!oPlayer.absorbedList.Contains(this))
+                    {
+                        oPlayer.absorbedList.Add(this);
+                    }
                 }
 
                 oPlayer.isAbsorbed = true;
