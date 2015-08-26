@@ -201,11 +201,12 @@ public class Player : Entity
                                 }
                                 else
                                 {
-                                    //search through the playerobjects array to find the first object that is in the absorbed list of
+                                    //search through the playerobjects array to find the last object that is in the absorbed list of
                                     // the object that is being switched to. When it finds it, disable all the objects in the absorbed list,
                                     // then enable the one that is being switched to and set it's traits to the first object found.
-                                    for (int i = 0; i < gameMaster.playerObjects.Length; ++i)
+                                    for (int i = gameMaster.playerObjects.Length-1; i > -1; --i)
                                     {
+                                        Debug.Log(i);
                                         if (gameMaster.playerObjects[0].absorbedList.Contains(gameMaster.playerObjects[i]))
                                         {
                                             for (int j = 0; j < gameMaster.playerObjects[0].absorbedList.Count; ++j)
@@ -217,7 +218,7 @@ public class Player : Entity
                                             gameMaster.playerObjects[0].playerPhysics.velocity = gameMaster.playerObjects[i].playerPhysics.velocity;
                                             gameMaster.playerObjects[0].jumpCount = gameMaster.playerObjects[i].jumpCount;
                                             //ends the for loop since it doesnt need to continue anymore.
-                                            i = gameMaster.playerObjects.Length + 1;
+                                            i = -1;
                                         }
                                     }
                                 }
@@ -247,7 +248,7 @@ public class Player : Entity
                                     }
                                     else
                                     {
-                                        for (int i = 0; i < gameMaster.playerObjects.Length; ++i)
+                                        for (int i = gameMaster.playerObjects.Length-1; i >0; --i)
                                         {
                                             if (gameMaster.playerObjects[index + 1].absorbedList.Contains(gameMaster.playerObjects[i]))
                                             {
@@ -259,6 +260,7 @@ public class Player : Entity
                                                 gameMaster.playerObjects[index + 1].transform.position = gameMaster.playerObjects[i].transform.position;
                                                 gameMaster.playerObjects[index + 1].playerPhysics.velocity = gameMaster.playerObjects[i].playerPhysics.velocity;
                                                 gameMaster.playerObjects[index + 1].jumpCount = gameMaster.playerObjects[i].jumpCount;
+                                                i = -1;
                                             }
                                         }
                                     }
