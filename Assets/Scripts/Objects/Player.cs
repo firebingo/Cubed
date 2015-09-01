@@ -20,6 +20,7 @@ public class Player : Entity
     public int maxJumps; //the max amount of jumps the player can do.
     float jumpTimer; //timer used for preventing multi-jumping too quickly.
     bool isGrounded; //whether or not the player is on the ground
+    float jumpResetThreshold; //the threshold for the hit normal for ressetting jumps
     float defJumpForce; // the players default jump force
     bool canIceShield; //whether or not the player can use the ice shield.
     bool canFireShield; //whether or not the player can use the fire shield.
@@ -79,6 +80,7 @@ public class Player : Entity
         checkpointPos = transform.position;
         absorbedList = new List<Player>();
         absorbedList.Add(this);
+        jumpResetThreshold = 0.85f; //.85 is around 45 degrees
 
         hasPaused = false;
     }
@@ -535,10 +537,15 @@ public class Player : Entity
         if (collisionTimer > 0.1f)
         {
             Ray ray = new Ray(transform.position, -(Vector3.up));
-            if (Physics.Raycast(ray, 0.2f, 1 << 8))
+            RaycastHit hit;
+            if (Physics.Raycast(ray, out hit, 0.2f, 1 << 8))
             {
-                jumpCount = maxJumps;
-                isGrounded = true;
+               // Debug.Log(hit.normal.y);
+                if (hit.normal.y > jumpResetThreshold)
+                {
+                    jumpCount = maxJumps;
+                    isGrounded = true;
+                }
             }
         }
         //if the player hits a environemnt object and isin't grounded shortly disable input.
