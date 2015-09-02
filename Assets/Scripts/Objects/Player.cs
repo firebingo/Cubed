@@ -10,8 +10,8 @@ using System.Collections.Generic;
 
 public class Player : Entity
 {
-    public enum shapes { Cube, Sphere, Pyramid };
-    public enum colors { red, green, blue };
+    enum shapes { Cube, Sphere, Pyramid };
+    enum colors { pure, red, green, blue };
 
     public Camera gCamera; //reference to the game's main camera
     public Rigidbody playerPhysics; //reference to the players rigidbody
@@ -45,6 +45,8 @@ public class Player : Entity
     public bool isActive; // whether or not the player object is currently active and receiving controls.
     public bool isAbsorbed; // whether or not the object has been absored/absorbed another object 
     public List<Player> absorbedList; // the list of objects that have been absorbed.
+    [SerializeField]
+    int pColor; //the color of the player object.
 
     //Unity Start() method
     void Start()
@@ -206,7 +208,7 @@ public class Player : Entity
                                     //search through the playerobjects array to find the last object that is in the absorbed list of
                                     // the object that is being switched to. When it finds it, disable all the objects in the absorbed list,
                                     // then enable the one that is being switched to and set it's traits to the first object found.
-                                    for (int i = gameMaster.playerObjects.Length-1; i > -1; --i)
+                                    for (int i = gameMaster.playerObjects.Length - 1; i > -1; --i)
                                     {
                                         Debug.Log(i);
                                         if (gameMaster.playerObjects[0].absorbedList.Contains(gameMaster.playerObjects[i]))
@@ -250,7 +252,7 @@ public class Player : Entity
                                     }
                                     else
                                     {
-                                        for (int i = gameMaster.playerObjects.Length-1; i >0; --i)
+                                        for (int i = gameMaster.playerObjects.Length - 1; i > 0; --i)
                                         {
                                             if (gameMaster.playerObjects[index + 1].absorbedList.Contains(gameMaster.playerObjects[i]))
                                             {
@@ -595,10 +597,18 @@ public class Player : Entity
             if (iOther == iOther.gameObject.GetComponent<RisingLava>().lavaStart)
                 iOther.gameObject.GetComponent<RisingLava>().isMoving = true;
         }
+
         //if the player hits a grass loader.
         if (iOther.gameObject.tag == "grassLoader")
-        {
             iOther.GetComponent<GrassLoader>().loadFunction();
+
+        if (iOther.gameObject.tag == "Switch")
+        {
+            if (iOther.GetComponent<Switch>().getColor() == pColor)
+            {
+                if (!iOther.GetComponent<Switch>().getSwitchActive())
+                    iOther.GetComponent<Switch>().toggleObjects();
+            }
         }
     }
 
@@ -646,5 +656,21 @@ public class Player : Entity
                 jumpForce = defJumpForce * 0.61f;
             }
         }
+
+        if (iOther.gameObject.tag == "Switch")
+        {
+            if (iOther.GetComponent<Switch>().getColor() == pColor)
+            {
+                if (!iOther.GetComponent<Switch>().getActiveSwitch())
+                    iOther.GetComponent<Switch>().toggleObjects();
+            }
+        }
+    }
+
+    //getters and setters
+    public int getColor()
+    {
+        return pColor;
     }
 }
+
