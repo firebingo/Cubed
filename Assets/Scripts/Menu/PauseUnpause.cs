@@ -7,4 +7,10 @@ public class PauseUnpause : MonoBehaviour
     {
         GameController.gameMaster.isPaused = false;
     }
+
+    //resets the player to their last checkpoint
+    public void resetPlayer()
+    {
+        GameController.gameMaster.gamePlayer.health = -1;
+    }
 }

@@ -9,9 +9,11 @@ public class basicEnemy : Entity
     bool xFlip; //used for the vector rotation
     bool zFlip; //used for the vector rotation
     float distanceToPlayer; //the distance away from the player
-    int enemyState; //what state the enemy is in, 0 = wandering, 1 = following player, 2 = wait
+    private enum enemyStates{wander, follow, wait} //states for the enemy ai
+    int enemyState; //what state the enemy is in.
     public float seekDistance; //the distance that the enemy will seek the player
-    public bool waitStill;
+    public bool waitStill; //falg to set whether or not the enemy should wait if the player isin't in range.
+    bool canMove; //whether or not the enemy can move.
     ParticleSystem deathparts;
 
     // Use this for initialization
@@ -30,17 +32,17 @@ public class basicEnemy : Entity
             distanceToPlayer = Vector3.Distance(transform.position, GameController.gameMaster.playerPosition);
 
             if (distanceToPlayer < seekDistance)
-                enemyState = 1;
-            else if (waitStill)
-                enemyState = 2;
+                enemyState = (int)enemyStates.follow;
+            else if (waitStill || distanceToPlayer > 30.0f)
+                enemyState = (int)enemyStates.wait;
             else
-                enemyState = 0;
+                enemyState = (int)enemyStates.wander;
 
             switch (enemyState)
             {
-                case 0:
-                    //if the vector's x is greater than one, flip the bool so it starts decreasing
-                    //if it's less than one, flip the bool so it starts increasing.
+                case (int)enemyStates.wander:
+                    //if the vector's x is greater than 1, flip the bool so it starts decreasing
+                    //if it's less than 1, flip the bool so it starts increasing.
                     //same is then done for z
                     if (pushDirection.x > 1)
                         xFlip = true;
@@ -59,14 +61,18 @@ public class basicEnemy : Entity
                         pushDirection.z -= patrolAngle * Time.deltaTime;
                     else if (!zFlip)
                         pushDirection.z += patrolAngle * Time.deltaTime;
+                    canMove = true;
                     break;
-                case 1:
+                case (int)enemyStates.follow:
                     pushDirection = (GameController.gameMaster.playerPosition - transform.position).normalized;
+                    canMove = true;
                     break;
-                case 2:
-                    pushDirection = new Vector3(0, 0, 0);
+                case (int)enemyStates.wait:
+                    canMove = false;
                     break;
             }
+
+            Debug.DrawRay(transform.position, pushDirection, Color.red);
 
             if (health < 0)
             {
@@ -80,6 +86,7 @@ public class basicEnemy : Entity
                 {
                     deathparts.GetComponent<deathParts>().startDying();
                     deathparts.transform.parent = null;
+                    deathparts.gameObject.GetComponent<Renderer>().material.color = GetComponent<Renderer>().material.color;
                     deathparts.Play();
                 }
                 DestroyObject(this.gameObject);
@@ -97,7 +104,8 @@ public class basicEnemy : Entity
                 onUnpause();
                 hasPaused = false;
             }
-            entityPhysics.AddForceAtPosition(pushDirection.normalized * moveSpeed * Time.fixedDeltaTime, new Vector3(transform.position.x, transform.position.y + (0.35f * transform.localScale.y), transform.position.z - (0.5f * transform.localScale.z)), ForceMode.Force);
+            if(canMove)
+                entityPhysics.AddForceAtPosition(pushDirection.normalized * moveSpeed * Time.fixedDeltaTime, new Vector3(transform.position.x, transform.position.y + (0.35f * transform.localScale.y), transform.position.z - (0.5f * transform.localScale.z)), ForceMode.Force);
         }
         else
         {

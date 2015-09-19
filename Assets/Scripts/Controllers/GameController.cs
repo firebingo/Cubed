@@ -30,6 +30,7 @@ public class GameController : MonoBehaviour
     public int shadowQuality; //0 = low res, 2 cascades, 1 = medium, two cascades, 2 = high, four cascades, 3 = very high
     public int waterQuality; //0 = simple, 1 = 128, 2 = 256, 3 = 512, 4 = 1024 
     public int frameTarget; //frame rate target, 0 = 30, 1 = 60, 2 = 75, 3 = 120, 4 = 144, 5 = 300
+    public int grassQuality; // 0 = 0ff, 1 = low density/lod, 2 = med lod, 3 = med density, 4 = high lod, 5 = high density/lod
     public bool vSync; // false = off, true = on
     public bool Fullscreen; // true = fullscreen, false = windowed
 
@@ -43,6 +44,9 @@ public class GameController : MonoBehaviour
     public bool isPaused; //whether or not the game is paused.
     public bool hasPaused;
     public GameObject pauseMenu;
+    public CameraTracker cameraTracker;
+
+    public Player[] playerObjects;
 
     // Unity Awake() method
     void Awake()
@@ -57,15 +61,15 @@ public class GameController : MonoBehaviour
             Destroy(this.gameObject);
         }
 
-        playerMaxJumpCount = 2;
+        playerMaxJumpCount = 1;
         playerMaxFireShieldTime = 20;
         playerMaxIceShieldTime = 20;
         playerMaxHealth = 100;
         playerDefense = 1.0f;
-        playerCanAirDash = true;
-        playerCanDash = true;
-        playerCanUseFireShield = true;
-        playerCanUseIceShield = true;
+        playerCanAirDash = false;
+        playerCanDash = false;
+        playerCanUseFireShield = false;
+        playerCanUseIceShield = false;
     }
 
     // Unity Start() method
@@ -89,6 +93,7 @@ public class GameController : MonoBehaviour
             cameraSensitivity = 1;
             cameraXInvert = 1;
             cameraYInvert = 1;
+            grassQuality = 2;
         }
 
         saveOptions();
@@ -197,7 +202,7 @@ public class GameController : MonoBehaviour
         BinaryFormatter bf = new BinaryFormatter();
         FileStream file = File.Open(Application.dataPath + "/gameOptions.wort", FileMode.OpenOrCreate);
 
-        GameOptions options = new GameOptions(SMAAQuality, SSAOQuality, postProcessingQuality, reflectionQuality, reflectionUpdateFrequency, shadowQuality, vSync, Fullscreen, waterQuality, frameTarget, cameraSensitivity, cameraXInvert, cameraYInvert);
+        GameOptions options = new GameOptions(SMAAQuality, SSAOQuality, postProcessingQuality, reflectionQuality, reflectionUpdateFrequency, shadowQuality, vSync, Fullscreen, waterQuality, frameTarget, cameraSensitivity, cameraXInvert, cameraYInvert, grassQuality);
 
         bf.Serialize(file, options);
         file.Close();
@@ -226,6 +231,7 @@ public class GameController : MonoBehaviour
             cameraSensitivity = options.cameraSensitivity;
             cameraXInvert = options.cameraXInvert;
             cameraYInvert = options.cameraYInvert;
+            grassQuality = options.grassQuality;
             return true;
         }
         else
@@ -244,7 +250,7 @@ public class GameController : MonoBehaviour
 [Serializable]
 class GameOptions
 {
-    public GameOptions(int iSMAAQuality, int iSSAOQuality, int iPostProcessingQuality, int iReflectionQuality, int iReflectionUpdateFrequency, int iShadowQuality, bool iVsync, bool iFullScreen, int iWaterQuality, int iFrameTarget, float iCameraSensitivity, short iCameraXInvert, short iCameraYInvert)
+    public GameOptions(int iSMAAQuality, int iSSAOQuality, int iPostProcessingQuality, int iReflectionQuality, int iReflectionUpdateFrequency, int iShadowQuality, bool iVsync, bool iFullScreen, int iWaterQuality, int iFrameTarget, float iCameraSensitivity, short iCameraXInvert, short iCameraYInvert, int iGrassQuality)
     {
         SMAAQuality = iSMAAQuality;
         SSAOQuality = iSSAOQuality;
@@ -259,6 +265,7 @@ class GameOptions
         cameraSensitivity = iCameraSensitivity;
         cameraXInvert = iCameraXInvert;
         cameraYInvert = iCameraYInvert;
+        grassQuality = iGrassQuality;
     }
 
     //Options
@@ -270,6 +277,7 @@ class GameOptions
     public int shadowQuality; //0 = low res, 2 cascades, 1 = medium, two cascades, 2 = high, four cascades, 3 = very high
     public int waterQuality; //0 = simple, 1 = 128, 2 = 256, 3 = 512, 4 = 1024 
     public int frameTarget; //frame rate target, 0 = 30, 1 = 60, 2 = 75, 3 = 120, 4 = 144, 5 = 300
+    public int grassQuality; // 0 = 0ff, 1 = low density/lod, 2 = med lod, 3 = med density, 4 = high lod, 5 = high density/lod
     public bool vSync; // false = off, true = on
     public bool Fullscreen; // true = fullscreen, false = windowed
 
