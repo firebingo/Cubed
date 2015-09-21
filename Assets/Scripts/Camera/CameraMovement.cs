@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System;
 using Smaa;
 using UnityStandardAssets.ImageEffects;
 
@@ -53,13 +53,12 @@ public class CameraMovement : MonoBehaviour
             float cameraVertical = Input.GetAxis("CameraVertical");
             float cameraHorizontal = Input.GetAxis("CameraHorizontal");
 
-            if(Input.GetAxis("DPadVertical") > 0)
+            if(Input.GetAxis("DPadVertical") < 0 || Input.GetButtonDown("CameraSwitch"))
             {
-                cameraState = (int)cameraStates.autoFollow;
-            }
-            if(Input.GetAxis("DPadVertical") < 0)
-            {
-                cameraState = (int)cameraStates.freeCam;
+                if (cameraState == Enum.GetNames(typeof(cameraStates)).Length - 1)
+                    cameraState = 0;
+                else
+                    ++cameraState;
             }
 
             switch (cameraState)

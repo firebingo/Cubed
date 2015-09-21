@@ -609,10 +609,24 @@ public class Player : Entity
 
         if (iOther.gameObject.tag == "Switch")
         {
-            if (iOther.GetComponent<Switch>().getColor() == pColor)
+            Switch sScript = iOther.GetComponent<Switch>();
+            if (!sScript.getPlayer())
             {
-                if (!iOther.GetComponent<Switch>().getSwitchActive())
-                    iOther.GetComponent<Switch>().toggleObjects();
+                if (!absorbedList.Contains(sScript.getPlayer()))
+                {
+                    if (sScript.getColor() == pColor)
+                    {
+                        if (!sScript.getSwitchActive())
+                        {
+                            sScript.toggleObjects();
+                            sScript.setPlayer(this);
+                        }
+                    }
+                }
+                else
+                {
+                    sScript.setPlayer(this);
+                }
             }
         }
     }
@@ -620,7 +634,6 @@ public class Player : Entity
     //Unity OnTriggerExit function.
     void OnTriggerExit(Collider iOther)
     {
-
         if (iOther.gameObject.tag == "Water")
         {
             //if the player passes a water plane and is above it change it's physics to accomodate
@@ -664,10 +677,14 @@ public class Player : Entity
 
         if (iOther.gameObject.tag == "Switch")
         {
-            if (iOther.GetComponent<Switch>().getColor() == pColor)
+            Switch sScript = iOther.GetComponent<Switch>();
+            if (sScript.getColor() == pColor)
             {
-                if (!iOther.GetComponent<Switch>().getActiveSwitch())
-                    iOther.GetComponent<Switch>().toggleObjects();
+                if (!sScript.getActiveSwitch())
+                {
+                    sScript.toggleObjects();
+                    sScript.setPlayer(null);
+                }
             }
         }
     }
