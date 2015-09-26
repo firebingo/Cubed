@@ -47,6 +47,9 @@ public class Player : Entity
     public List<Player> absorbedList; // the list of objects that have been absorbed.
     [SerializeField]
     int pColor; //the color of the player object.
+    [SerializeField]
+    float wallStickCompValue; //value to compensate so player doesn't stick to walls. values below .02 have little to no effect, values above .027 are a bit too noticable.
+
 
     //Unity Start() method
     void Start()
@@ -557,8 +560,9 @@ public class Player : Entity
         }
         //if the player hits a environemnt object and isin't grounded shortly disable input.
         //this is to prevent wall sticking and theoretically shouldnt cause other problems.
+        
         if (iOther.gameObject.layer == 8 && !isGrounded)
-            inputDTimer += 0.02f;
+            inputDTimer += wallStickCompValue;
     }
 
     //Unity OnTriggerEnter function.
@@ -609,10 +613,24 @@ public class Player : Entity
 
         if (iOther.gameObject.tag == "Switch")
         {
-            if (iOther.GetComponent<Switch>().getColor() == pColor)
+            Switch sScript = iOther.GetComponent<Switch>();
+            if (!sScript.getPlayer())
             {
-                if (!iOther.GetComponent<Switch>().getSwitchActive())
-                    iOther.GetComponent<Switch>().toggleObjects();
+                if (!absorbedList.Contains(sScript.getPlayer()))
+                {
+                    if (sScript.getColor() == pColor)
+                    {
+                        if (!sScript.getSwitchActive())
+                        {
+                            sScript.toggleObjects();
+                            sScript.setPlayer(this);
+                        }
+                    }
+                }
+                else
+                {
+                    sScript.setPlayer(this);
+                }
             }
         }
     }
@@ -620,7 +638,6 @@ public class Player : Entity
     //Unity OnTriggerExit function.
     void OnTriggerExit(Collider iOther)
     {
-
         if (iOther.gameObject.tag == "Water")
         {
             //if the player passes a water plane and is above it change it's physics to accomodate
@@ -664,10 +681,14 @@ public class Player : Entity
 
         if (iOther.gameObject.tag == "Switch")
         {
-            if (iOther.GetComponent<Switch>().getColor() == pColor)
+            Switch sScript = iOther.GetComponent<Switch>();
+            if (sScript.getColor() == pColor)
             {
-                if (!iOther.GetComponent<Switch>().getActiveSwitch())
-                    iOther.GetComponent<Switch>().toggleObjects();
+                if (!sScript.getActiveSwitch())
+                {
+                    sScript.toggleObjects();
+                    sScript.setPlayer(null);
+                }
             }
         }
     }

@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System;
 using Smaa;
 using UnityStandardAssets.ImageEffects;
 
@@ -18,6 +18,7 @@ public class CameraMovement : MonoBehaviour
     public float smoothTime;
     private enum cameraStates { autoFollow, freeCam } //the states the camera can be in.
     private int cameraState; //the current state the camera is in
+    private bool axisUsed;
 
     float cameraYSpeed;
     float cameraXSpeed; //the speed of the camera's movement.
@@ -43,6 +44,7 @@ public class CameraMovement : MonoBehaviour
             waterFog.enabled = false;
         setQuality();
         cameraState = 0;
+        axisUsed = false;
     }
 
     void LateUpdate()
@@ -53,19 +55,22 @@ public class CameraMovement : MonoBehaviour
             float cameraVertical = Input.GetAxis("CameraVertical");
             float cameraHorizontal = Input.GetAxis("CameraHorizontal");
 
-            if(Input.GetAxis("DPadVertical") > 0)
+            if ((Input.GetAxis("DPadVertical") < 0 || Input.GetButtonDown("CameraSwitch")) && !axisUsed)
             {
-                cameraState = (int)cameraStates.autoFollow;
+                if (cameraState == Enum.GetNames(typeof(cameraStates)).Length - 1)
+                    cameraState = 0;
+                else
+                    ++cameraState;
+                axisUsed = true;
             }
-            if(Input.GetAxis("DPadVertical") < 0)
-            {
-                cameraState = (int)cameraStates.freeCam;
-            }
+            if (Input.GetAxis("DPadVertical") == 0 && !Input.GetButtonDown("CameraSwitch"))
+                axisUsed = false;
 
             switch (cameraState)
             {
                 //auto follow state
                 case (int)cameraStates.autoFollow:
+                    transform.parent = null;
 
                     //find the vector between the target and the camera's position, remove it's y component, then normalize it.
                     lookDirection = Vector3.Normalize(Target.position - transform.position);
@@ -100,11 +105,13 @@ public class CameraMovement : MonoBehaviour
 
                     break;
                 case (int)cameraStates.freeCam:
+                    transform.parent = Target;
 
-                    lookDirection = Vector3.Normalize(Target.position - transform.position);
+                    //lookDirection = Vector3.Normalize(Target.position - transform.position);
                     lookDirection.y = 0;
 
-                    targetPosition = Target.position + Vector3.up * (targetPosition.y - Target.position.y) - (Vector3.ProjectOnPlane(transform.forward, Vector3.up) * distanceAway);
+                    //targetPosition = Target.position + Vector3.up * (targetPosition.y - Target.position.y) - (Vector3.ProjectOnPlane(transform.forward, Vector3.up) * distanceAway);
+                    targetPosition = Target.position + Vector3.up * (transform.position.y - Target.position.y) - (Vector3.ProjectOnPlane(transform.forward, Vector3.up) * distanceAway);
 
                     transform.position = targetPosition;
 
@@ -116,12 +123,12 @@ public class CameraMovement : MonoBehaviour
                     if (cameraVertical > 0 || cameraVertical < 0)
                         transform.RotateAround(Target.position, transform.right, cameraXSpeed * cameraVertical * gameMaster.cameraYInvert * gameMaster.cameraSensitivity * Time.deltaTime);
 
-                    //makes sure the camera is never to directly above the player
+                    //makes sure the camera is never too directly above the player
                     if (transform.rotation.eulerAngles.x > 80 && transform.rotation.eulerAngles.x < 95)
-                        {
-                            transform.rotation = Quaternion.Euler(79, transform.rotation.y, transform.rotation.z);
-                            transform.position = new Vector3(transform.position.x, Target.position.y + 1.75f, transform.position.z);
-                        }
+                    {
+                        transform.rotation = Quaternion.Euler(79, transform.rotation.y, transform.rotation.z);
+                        transform.position = new Vector3(transform.position.x, Target.position.y + 1.75f, transform.position.z);
+                    }
 
                     //prevent camera from clipping into environment objects.
                     RaycastHit wallHit = new RaycastHit();
@@ -137,7 +144,7 @@ public class CameraMovement : MonoBehaviour
         }
 
         //make the camera look at the Target
-        transform.LookAt(Target);        
+        transform.LookAt(Target);
     }
 
     // Unity Update() method
