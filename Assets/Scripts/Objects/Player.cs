@@ -185,7 +185,7 @@ public class Player : Entity
                         }
                     }
 
-                    //if the index of this object is at the top of the array, switch to the object at the botton of the array.
+                    //if the index of this object is at the top of the array, switch to the object at the bottom of the array.
                     if (index == gameMaster.playerObjects.Length - 1)
                     {
                         if (gameMaster.playerObjects[0])
@@ -210,19 +210,21 @@ public class Player : Entity
                                     // then enable the one that is being switched to and set it's traits to the first object found.
                                     for (int i = gameMaster.playerObjects.Length - 1; i > -1; --i)
                                     {
-                                        Debug.Log(i);
                                         if (gameMaster.playerObjects[0].absorbedList.Contains(gameMaster.playerObjects[i]))
                                         {
-                                            for (int j = 0; j < gameMaster.playerObjects[0].absorbedList.Count; ++j)
+                                            if (gameMaster.playerObjects[i] != gameMaster.playerObjects[0])
                                             {
-                                                gameMaster.playerObjects[0].absorbedList[j].gameObject.SetActive(false);
+                                                for (int j = 0; j < gameMaster.playerObjects[0].absorbedList.Count; ++j)
+                                                {
+                                                    gameMaster.playerObjects[0].absorbedList[j].gameObject.SetActive(false);
+                                                }
+                                                gameMaster.playerObjects[0].gameObject.SetActive(true);
+                                                gameMaster.playerObjects[0].transform.position = gameMaster.playerObjects[i].transform.position;
+                                                gameMaster.playerObjects[0].playerPhysics.velocity = gameMaster.playerObjects[i].playerPhysics.velocity;
+                                                gameMaster.playerObjects[0].jumpCount = gameMaster.playerObjects[i].jumpCount;
+                                                //ends the for loop since it doesnt need to continue anymore.
+                                                i = -1;
                                             }
-                                            gameMaster.playerObjects[0].gameObject.SetActive(true);
-                                            gameMaster.playerObjects[0].transform.position = gameMaster.playerObjects[i].transform.position;
-                                            gameMaster.playerObjects[0].playerPhysics.velocity = gameMaster.playerObjects[i].playerPhysics.velocity;
-                                            gameMaster.playerObjects[0].jumpCount = gameMaster.playerObjects[i].jumpCount;
-                                            //ends the for loop since it doesnt need to continue anymore.
-                                            i = -1;
                                         }
                                     }
                                 }
@@ -252,19 +254,22 @@ public class Player : Entity
                                     }
                                     else
                                     {
-                                        for (int i = gameMaster.playerObjects.Length - 1; i > 0; --i)
+                                        for (int i = gameMaster.playerObjects.Length - 1; i > -1; --i)
                                         {
                                             if (gameMaster.playerObjects[index + 1].absorbedList.Contains(gameMaster.playerObjects[i]))
                                             {
-                                                for (int j = 0; j < gameMaster.playerObjects[index + 1].absorbedList.Count; ++j)
+                                                if (gameMaster.playerObjects[i] != gameMaster.playerObjects[index + 1])
                                                 {
-                                                    gameMaster.playerObjects[index + 1].absorbedList[j].gameObject.SetActive(false);
+                                                    for (int j = 0; j < gameMaster.playerObjects[index + 1].absorbedList.Count; ++j)
+                                                    {
+                                                        gameMaster.playerObjects[index + 1].absorbedList[j].gameObject.SetActive(false);
+                                                    }
+                                                    gameMaster.playerObjects[index + 1].gameObject.SetActive(true);
+                                                    gameMaster.playerObjects[index + 1].transform.position = gameMaster.playerObjects[i].transform.position;
+                                                    gameMaster.playerObjects[index + 1].playerPhysics.velocity = gameMaster.playerObjects[i].playerPhysics.velocity;
+                                                    gameMaster.playerObjects[index + 1].jumpCount = gameMaster.playerObjects[i].jumpCount;
+                                                    i = -1;
                                                 }
-                                                gameMaster.playerObjects[index + 1].gameObject.SetActive(true);
-                                                gameMaster.playerObjects[index + 1].transform.position = gameMaster.playerObjects[i].transform.position;
-                                                gameMaster.playerObjects[index + 1].playerPhysics.velocity = gameMaster.playerObjects[i].playerPhysics.velocity;
-                                                gameMaster.playerObjects[index + 1].jumpCount = gameMaster.playerObjects[i].jumpCount;
-                                                i = -1;
                                             }
                                         }
                                     }
@@ -542,7 +547,7 @@ public class Player : Entity
             RaycastHit hit;
             if (Physics.Raycast(ray, out hit, 0.2f, 1 << 8))
             {
-               // Debug.Log(hit.normal.y);
+                // Debug.Log(hit.normal.y);
                 if (hit.normal.y > jumpResetThreshold)
                 {
                     jumpCount = maxJumps;
