@@ -47,6 +47,9 @@ public class Player : Entity
     public List<Player> absorbedList; // the list of objects that have been absorbed.
     [SerializeField]
     int pColor; //the color of the player object.
+    [SerializeField]
+    float wallStickCompValue; //value to compensate so player doesn't stick to walls. values below .02 have little to no effect, values above .027 are a bit too noticable.
+
 
     //Unity Start() method
     void Start()
@@ -557,8 +560,9 @@ public class Player : Entity
         }
         //if the player hits a environemnt object and isin't grounded shortly disable input.
         //this is to prevent wall sticking and theoretically shouldnt cause other problems.
+        
         if (iOther.gameObject.layer == 8 && !isGrounded)
-            inputDTimer += 0.02f;
+            inputDTimer += wallStickCompValue;
     }
 
     //Unity OnTriggerEnter function.
