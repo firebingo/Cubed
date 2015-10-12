@@ -36,6 +36,7 @@ Library/
 Builds/
 Assets/AssetStoreTools*
 Assets/Advanced Foliage Shader v4/Demos
+Assets/Editor.meta
 
 # ===================================== #
 # Visual Studio / MonoDevelop generated #
