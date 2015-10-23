@@ -51,6 +51,7 @@ ExportedObj/
 *.user
 *.unityproj
 *.booproj
+*.cd
 
 # =========================
 # Operating System Files
