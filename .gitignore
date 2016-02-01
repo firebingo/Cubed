@@ -35,7 +35,10 @@ UnityGenerated/
 Library/
 Builds/
 Assets/AssetStoreTools*
-Assets/Advanced Foliage Shader v4/Demos
+Assets/Advanced Foliage Shader v4
+Advanced Foliage Shader v4.meta
+MeshBrush.meta
+Assets/MeshBrush
 Assets/Editor.meta
 
 # ===================================== #
